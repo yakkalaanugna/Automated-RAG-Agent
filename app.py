@@ -10,6 +10,7 @@ from engine import (
     get_groq_client, read_log_content, read_all_lines, extract_archive_bytes,
     detect_log_type, detect_severity, is_important, clean_line,
     compare_pass_fail, analyze_logs, ask_llm,
+    interactive_analyze_start, interactive_analyze_continue,
     SUPPORTED_EXTENSIONS, ARCHIVE_EXTENSIONS,
     SYSTEM_PROMPT_ANALYZE, LOG_TYPE_PATTERNS
 )
@@ -124,7 +125,7 @@ tab1, tab2, tab3 = st.tabs([
 
 
 # =============================================================
-# TAB 1: Single Log Analysis
+# TAB 1: Single Log Analysis (Interactive Investigation)
 # =============================================================
 with tab1:
     st.subheader("Upload a log file for AI-powered root cause analysis")
@@ -141,6 +142,10 @@ with tab1:
         placeholder="e.g., Why did the UE connection fail?",
         key="single_query"
     )
+
+    # Initialize session state for interactive investigation
+    if "investigation" not in st.session_state:
+        st.session_state.investigation = None
 
     if uploaded_file and st.button("Analyze", key="btn_analyze", type="primary"):
         if not groq_client:
@@ -180,18 +185,94 @@ with tab1:
                         sev = detect_severity(msg)
                         st.text(f"{show_severity_badge(sev)} [{fname}] {msg}")
 
-                # Run LLM analysis
+                # Run interactive LLM analysis
                 st.divider()
-                st.subheader("AI Investigation")
+                st.subheader("🔍 AI Investigation")
 
                 query = custom_query if custom_query else "Analyze all errors and find root cause"
 
                 with st.spinner("AI agent is investigating..."):
-                    steps = analyze_logs(entries, groq_client, query)
+                    result = interactive_analyze_start(entries, groq_client, query)
 
-                for i, step in enumerate(steps):
-                    with st.expander(f"Step {i + 1}: {step['title']}", expanded=(i == len(steps) - 1)):
+                # Store in session state for continuation
+                st.session_state.investigation = result
+
+                # Display completed steps
+                for i, step in enumerate(result["steps"]):
+                    with st.expander(f"Step {i + 1}: {step['title']}", expanded=(i == len(result["steps"]) - 1)):
                         st.markdown(step["content"])
+
+                # If AI requests more files, show the request
+                if result["requested_files"]:
+                    st.divider()
+                    st.warning(
+                        "🔎 **The AI agent needs additional log files to continue the investigation.**\n\n"
+                        "Please upload the following files below:"
+                    )
+                    for fname in result["requested_files"]:
+                        st.markdown(f"- **{fname}**")
+
+    # --- Continuation: Upload requested files ---
+    if (st.session_state.investigation
+            and st.session_state.investigation.get("requested_files")):
+        inv = st.session_state.investigation
+
+        st.divider()
+        st.subheader("📂 Upload Requested Files to Continue Investigation")
+        st.info(
+            "The AI agent requested these files: **"
+            + ", ".join(inv["requested_files"])
+            + "**\n\nUpload them below to continue the analysis."
+        )
+
+        followup_files = st.file_uploader(
+            "Upload the requested log file(s)",
+            type=["txt", "log", "json", "csv", "xml", "html", "htm", "cfg", "tgz", "gz", "zip"],
+            accept_multiple_files=True,
+            key="followup_upload"
+        )
+
+        if followup_files and st.button("Continue Investigation", key="btn_continue", type="primary"):
+            if not groq_client:
+                st.error("Please enter your Groq API key in the sidebar.")
+            else:
+                # Process newly uploaded files
+                new_entries = []
+                for f in followup_files:
+                    entries, log_type, _ = process_uploaded_file(f)
+                    new_entries.extend(entries)
+
+                if not new_entries:
+                    st.warning("No important entries found in the uploaded files. Try a different file.")
+                else:
+                    with st.spinner("AI agent is continuing the investigation with new files..."):
+                        result = interactive_analyze_continue(
+                            new_entries, groq_client,
+                            inv["messages"], inv["steps"]
+                        )
+
+                    st.session_state.investigation = result
+
+                    # Display ALL steps (including previous)
+                    for i, step in enumerate(result["steps"]):
+                        with st.expander(
+                            f"Step {i + 1}: {step['title']}",
+                            expanded=(i == len(result["steps"]) - 1)
+                        ):
+                            st.markdown(step["content"])
+
+                    # Check if AI needs even more files
+                    if result["requested_files"]:
+                        st.divider()
+                        st.warning(
+                            "🔎 **The AI agent needs more log files to continue.**\n\n"
+                            "Please upload:"
+                        )
+                        for fname in result["requested_files"]:
+                            st.markdown(f"- **{fname}**")
+                    else:
+                        st.success("✅ Investigation complete!")
+                        st.session_state.investigation = None
 
 
 # =============================================================

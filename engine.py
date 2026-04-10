@@ -564,10 +564,19 @@ def compare_pass_fail(pass_content, fail_content, pass_name, fail_name, groq_cli
 # SINGLE LOG ANALYSIS
 # =============================================================
 
-def analyze_logs(logs, groq_client, query="Analyze all errors and find root cause"):
-    """Run full LLM-driven investigation on logs."""
+def _parse_check_next(response):
+    """Extract CHECK_NEXT file list from LLM response."""
+    for line in response.splitlines():
+        if line.strip().upper().startswith("CHECK_NEXT:"):
+            value = line.split(":", 1)[1].strip()
+            if value.upper() == "DONE":
+                return None
+            return [f.strip() for f in value.split(",") if f.strip()]
+    return None
 
-    # Get initial errors
+
+def _build_initial_context(logs, query):
+    """Build initial error summary and file list for investigation."""
     initial_errors = {}
     for filename, msg in logs:
         fname_lower = filename.lower()
@@ -585,7 +594,6 @@ def analyze_logs(logs, groq_client, query="Analyze all errors and find root caus
             error_summary += f"  - {entry}\n"
 
     if not error_summary:
-        # Use all errors as fallback
         error_summary = "\n[All files]:\n"
         for fname, msg in logs[:30]:
             error_summary += f"  - [{fname}] {msg}\n"
@@ -593,7 +601,14 @@ def analyze_logs(logs, groq_client, query="Analyze all errors and find root caus
     available_files = sorted(set(f for f, _ in logs))
     file_list = "\n".join(f"  - {f}" for f in available_files)
 
-    # Step 1: Initial diagnosis
+    return error_summary, file_list
+
+
+def analyze_logs(logs, groq_client, query="Analyze all errors and find root cause"):
+    """Run full LLM-driven investigation on logs (non-interactive, for batch/backward compat)."""
+
+    error_summary, file_list = _build_initial_context(logs, query)
+
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT_INVESTIGATE},
         {"role": "user", "content": (
@@ -609,18 +624,10 @@ def analyze_logs(logs, groq_client, query="Analyze all errors and find root caus
     steps.append({"title": "Initial Diagnosis", "content": response})
     messages.append({"role": "assistant", "content": response})
 
-    # Step 2-4: Iterative deep-dive
     for iteration in range(3):
-        check_next = None
-        for line in response.splitlines():
-            if line.strip().upper().startswith("CHECK_NEXT:"):
-                check_next = line.split(":", 1)[1].strip()
-                break
-
-        if not check_next or check_next.upper() == "DONE":
+        requested_files = _parse_check_next(response)
+        if not requested_files:
             break
-
-        requested_files = [f.strip() for f in check_next.split(",")]
 
         deep_logs = ""
         for pattern in requested_files:
@@ -651,3 +658,177 @@ def analyze_logs(logs, groq_client, query="Analyze all errors and find root caus
         messages.append({"role": "assistant", "content": response})
 
     return steps
+
+
+# =============================================================
+# INTERACTIVE INVESTIGATION (for Web UI)
+# =============================================================
+
+def interactive_analyze_start(logs, groq_client, query="Analyze all errors and find root cause"):
+    """Start an interactive investigation. Returns steps so far, messages history,
+    and a list of files the AI wants the user to upload (if any).
+
+    Returns:
+        dict with keys:
+            steps: list of analysis steps completed so far
+            messages: LLM conversation history (for continuation)
+            requested_files: list of filenames the AI wants next (empty if done)
+    """
+    error_summary, file_list = _build_initial_context(logs, query)
+
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT_INVESTIGATE},
+        {"role": "user", "content": (
+            f"User question: {query}\n\n"
+            f"Initial error scan:{error_summary}\n\n"
+            f"Available files:\n{file_list}"
+        )}
+    ]
+
+    steps = []
+    available_file_names = set(f.lower() for f, _ in logs)
+
+    response = ask_llm(groq_client, messages)
+    steps.append({"title": "Initial Diagnosis", "content": response})
+    messages.append({"role": "assistant", "content": response})
+
+    # Do up to 2 internal iterations with already-available files
+    for iteration in range(2):
+        requested = _parse_check_next(response)
+        if not requested:
+            # AI said DONE or didn't request anything
+            return {"steps": steps, "messages": messages, "requested_files": []}
+
+        # Split into available vs missing
+        available_requests = []
+        missing_requests = []
+        for pattern in requested:
+            pattern_lower = pattern.lower()
+            matched = [(f, m) for f, m in logs if pattern_lower in f.lower()]
+            if matched:
+                available_requests.append((pattern, matched))
+            else:
+                missing_requests.append(pattern)
+
+        # If some files are missing, stop and ask the user
+        if missing_requests and not available_requests:
+            # All requested files are missing — ask user for them
+            return {"steps": steps, "messages": messages, "requested_files": missing_requests}
+
+        # Process available files first
+        if available_requests:
+            deep_logs = ""
+            for pattern, matched in available_requests:
+                deep_logs += f"\n[{pattern}] ({len(matched)} entries):\n"
+                for fname, msg in matched[:20]:
+                    deep_logs += f"  - {msg}\n"
+
+            if missing_requests:
+                deep_logs += "\n\nNote: The following files were NOT available: "
+                deep_logs += ", ".join(missing_requests)
+
+            messages.append({
+                "role": "user",
+                "content": (
+                    f"Here are the logs from the files you requested:\n{deep_logs}\n\n"
+                    "Analyze these and give deeper root cause analysis. "
+                    "If you need more files, reply with CHECK_NEXT: filename1, filename2\n"
+                    "If investigation is complete, reply with CHECK_NEXT: DONE"
+                )
+            })
+
+            response = ask_llm(groq_client, messages)
+            steps.append({"title": f"Deep Analysis (Iteration {iteration + 1})", "content": response})
+            messages.append({"role": "assistant", "content": response})
+
+        # If we had missing files, ask user after processing available ones
+        if missing_requests:
+            return {"steps": steps, "messages": messages, "requested_files": missing_requests}
+
+    # After 2 internal iterations, check if AI still wants more files
+    requested = _parse_check_next(response)
+    if requested:
+        missing = [p for p in requested
+                   if not any(p.lower() in f.lower() for f, _ in logs)]
+        if missing:
+            return {"steps": steps, "messages": messages, "requested_files": missing}
+
+    return {"steps": steps, "messages": messages, "requested_files": []}
+
+
+def interactive_analyze_continue(logs_new, groq_client, prev_messages, prev_steps):
+    """Continue an interactive investigation with newly uploaded files.
+
+    Args:
+        logs_new: new log entries from the files the user just uploaded
+        groq_client: Groq client
+        prev_messages: conversation history from the previous round
+        prev_steps: steps from the previous round
+
+    Returns:
+        dict with keys: steps, messages, requested_files (same as start)
+    """
+    messages = list(prev_messages)
+    steps = list(prev_steps)
+
+    # Build log content from new files
+    new_file_names = sorted(set(f for f, _ in logs_new))
+    deep_logs = ""
+    for fname in new_file_names:
+        matched = [(f, m) for f, m in logs_new if f == fname]
+        deep_logs += f"\n[{fname}] ({len(matched)} entries):\n"
+        for f, msg in matched[:25]:
+            deep_logs += f"  - {msg}\n"
+
+    messages.append({
+        "role": "user",
+        "content": (
+            f"The user has provided the additional log files you requested.\n"
+            f"Here are the new logs:\n{deep_logs}\n\n"
+            "Continue your root cause investigation with this new data. "
+            "If you need more files, reply with CHECK_NEXT: filename1, filename2\n"
+            "If investigation is complete, reply with CHECK_NEXT: DONE"
+        )
+    })
+
+    response = ask_llm(groq_client, messages, max_tokens=1000)
+    step_num = len(steps) + 1
+    steps.append({"title": f"Deep Analysis (after new files)", "content": response})
+    messages.append({"role": "assistant", "content": response})
+
+    # One more iteration if AI requests more files from existing new data
+    requested = _parse_check_next(response)
+    if requested:
+        missing = [p for p in requested
+                   if not any(p.lower() in f.lower() for f, _ in logs_new)]
+        if missing:
+            return {"steps": steps, "messages": messages, "requested_files": missing}
+
+        # Requested files are in the new data — process them
+        deep_logs2 = ""
+        for pattern in requested:
+            pattern_lower = pattern.lower()
+            matched = [(f, m) for f, m in logs_new if pattern_lower in f.lower()]
+            if matched:
+                deep_logs2 += f"\n[{pattern}] ({len(matched)} entries):\n"
+                for fname, msg in matched[:20]:
+                    deep_logs2 += f"  - {msg}\n"
+
+        if deep_logs2.strip():
+            messages.append({
+                "role": "user",
+                "content": (
+                    f"Here are the additional logs:\n{deep_logs2}\n\n"
+                    "Continue analysis. Reply with CHECK_NEXT: DONE if complete, "
+                    "or CHECK_NEXT: filename1, filename2 if you need more."
+                )
+            })
+            response = ask_llm(groq_client, messages, max_tokens=1000)
+            steps.append({"title": "Final Analysis", "content": response})
+            messages.append({"role": "assistant", "content": response})
+
+            requested2 = _parse_check_next(response)
+            if requested2:
+                return {"steps": steps, "messages": messages, "requested_files": requested2}
+
+    return {"steps": steps, "messages": messages, "requested_files": []}
