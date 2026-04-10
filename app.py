@@ -11,6 +11,7 @@ from engine import (
     detect_log_type, detect_severity, is_important, clean_line,
     compare_pass_fail, analyze_logs, ask_llm,
     interactive_analyze_start, interactive_analyze_continue,
+    scan_local_path, scan_path_for_files, list_local_path_files,
     SUPPORTED_EXTENSIONS, ARCHIVE_EXTENSIONS,
     SYSTEM_PROMPT_ANALYZE, LOG_TYPE_PATTERNS
 )
@@ -68,11 +69,19 @@ with st.sidebar:
     st.divider()
     st.markdown("**How it works:**")
     st.markdown("""
-    1. Upload your log file(s)
+    1. Upload log file(s) or paste a local path
     2. System auto-detects log format
     3. AI agent investigates errors
-    4. Get root cause analysis
+    4. AI asks for more files if needed
+    5. Provide files via upload or path
+    6. Get root cause analysis
     """)
+    st.divider()
+    st.markdown("**💡 Tip for large files (sosreport):**")
+    st.markdown(
+        "Use the **Local path** option — paste the path to your sosreport folder. "
+        "The system reads it directly from disk, no upload needed."
+    )
 
 # Check API key
 groq_client = get_groq_client()
@@ -130,12 +139,50 @@ tab1, tab2, tab3 = st.tabs([
 with tab1:
     st.subheader("Upload a log file for AI-powered root cause analysis")
 
-    uploaded_file = st.file_uploader(
-        "Drop your log file here",
-        type=["txt", "log", "json", "csv", "xml", "html", "htm", "cfg", "tgz", "gz", "zip"],
-        key="single_upload",
-        help="Supports text logs, JSON, CSV, XML, HTML, archives (.tgz, .zip)"
+    # --- Input method: Upload OR Local Path ---
+    input_method = st.radio(
+        "How do you want to provide log files?",
+        ["📤 Upload file (small logs)", "📂 Local/network path (sosreport, large dirs)"],
+        key="input_method",
+        horizontal=True
     )
+
+    uploaded_file = None
+    local_path = None
+
+    if input_method == "📤 Upload file (small logs)":
+        uploaded_file = st.file_uploader(
+            "Drop your log file here",
+            type=["txt", "log", "json", "csv", "xml", "html", "htm", "cfg", "tgz", "gz", "zip"],
+            key="single_upload",
+            help="Supports text logs, JSON, CSV, XML, HTML, archives (.tgz, .zip)"
+        )
+    else:
+        local_path = st.text_input(
+            "Enter the full path to the log file or directory",
+            placeholder=r"e.g., C:\logs\sosreport-xyz  or  /home/user/testrun/logs",
+            key="local_path_input",
+            help="Paste the path to a sosreport folder, log directory, or a single log file. "
+                 "The system will scan it and find important log files automatically."
+        )
+        if local_path and os.path.isdir(local_path):
+            with st.expander("Preview files in this directory"):
+                file_list = list_local_path_files(local_path, max_files=100)
+                if not file_list:
+                    st.warning("No files found in this directory.")
+                else:
+                    important_files = [f for f in file_list if f["is_important"]]
+                    other_files = [f for f in file_list if not f["is_important"]]
+                    if important_files:
+                        st.markdown(f"**Important files found ({len(important_files)}):**")
+                        for f in important_files[:50]:
+                            st.text(f"  ⭐ {f['rel_path']}  ({f['size_mb']} MB)")
+                    if other_files:
+                        st.markdown(f"**Other files ({len(other_files)}):**")
+                        for f in other_files[:30]:
+                            st.text(f"     {f['rel_path']}  ({f['size_mb']} MB)")
+                    total_size = sum(f["size_mb"] for f in file_list)
+                    st.caption(f"Total: {len(file_list)} files, {total_size:.1f} MB scanned")
 
     custom_query = st.text_input(
         "Custom question (optional — leave empty for auto-analysis)",
@@ -146,26 +193,55 @@ with tab1:
     # Initialize session state for interactive investigation
     if "investigation" not in st.session_state:
         st.session_state.investigation = None
+    if "base_path" not in st.session_state:
+        st.session_state.base_path = None
 
-    if uploaded_file and st.button("Analyze", key="btn_analyze", type="primary"):
+    has_input = uploaded_file or (local_path and os.path.exists(local_path))
+
+    if has_input and st.button("Analyze", key="btn_analyze", type="primary"):
         if not groq_client:
             st.error("Please enter your Groq API key in the sidebar.")
         else:
-            with st.spinner("Processing log file..."):
-                entries, log_type, raw_content = process_uploaded_file(uploaded_file)
+            entries = []
+            log_type = "generic"
+            source_name = ""
+
+            if uploaded_file:
+                with st.spinner("Processing uploaded file..."):
+                    entries_raw, log_type, raw_content = process_uploaded_file(uploaded_file)
+                    entries = entries_raw
+                    source_name = uploaded_file.name
+                st.session_state.base_path = None
+            elif local_path:
+                with st.spinner(f"Scanning {local_path} for important log files..."):
+                    entries, file_index = scan_local_path(local_path)
+                    source_name = os.path.basename(local_path) or local_path
+                    if os.path.isfile(local_path):
+                        log_type = detect_log_type(
+                            os.path.basename(local_path),
+                            open(local_path, "r", errors="ignore").read(2000)
+                            if os.path.getsize(local_path) < 100*1024*1024 else ""
+                        )
+                    else:
+                        log_type = "directory"
+                # Store the path so follow-up can scan it for requested files
+                st.session_state.base_path = local_path
 
             # Show file info
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("File", uploaded_file.name)
+                st.metric("Source", source_name)
             with col2:
-                type_desc = LOG_TYPE_PATTERNS.get(log_type, {}).get("description", log_type.replace("_", " ").title())
-                st.metric("Detected Type", type_desc)
+                if log_type == "directory":
+                    st.metric("Type", "Directory Scan")
+                else:
+                    type_desc = LOG_TYPE_PATTERNS.get(log_type, {}).get("description", log_type.replace("_", " ").title())
+                    st.metric("Detected Type", type_desc)
             with col3:
                 st.metric("Filtered Entries", len(entries))
 
             if not entries:
-                st.warning("No important entries found in this file. The file may not contain error/warning lines.")
+                st.warning("No important entries found. The file/directory may not contain error/warning lines.")
             else:
                 # Show severity breakdown
                 severity_counts = {"ERROR": 0, "FAIL": 0, "WARNING": 0, "INFO": 0}
@@ -207,43 +283,78 @@ with tab1:
                     st.divider()
                     st.warning(
                         "🔎 **The AI agent needs additional log files to continue the investigation.**\n\n"
-                        "Please upload the following files below:"
+                        "Provide the files below using upload or a local path:"
                     )
                     for fname in result["requested_files"]:
                         st.markdown(f"- **{fname}**")
 
-    # --- Continuation: Upload requested files ---
+    # --- Continuation: Provide requested files ---
     if (st.session_state.investigation
             and st.session_state.investigation.get("requested_files")):
         inv = st.session_state.investigation
 
         st.divider()
-        st.subheader("📂 Upload Requested Files to Continue Investigation")
+        st.subheader("📂 Provide Requested Files to Continue Investigation")
         st.info(
-            "The AI agent requested these files: **"
+            "The AI agent requested: **"
             + ", ".join(inv["requested_files"])
-            + "**\n\nUpload them below to continue the analysis."
+            + "**"
         )
 
-        followup_files = st.file_uploader(
-            "Upload the requested log file(s)",
-            type=["txt", "log", "json", "csv", "xml", "html", "htm", "cfg", "tgz", "gz", "zip"],
-            accept_multiple_files=True,
-            key="followup_upload"
+        followup_method = st.radio(
+            "How to provide the requested files?",
+            ["📤 Upload files", "📂 Enter local path (sosreport / log directory)"],
+            key="followup_method",
+            horizontal=True
         )
 
-        if followup_files and st.button("Continue Investigation", key="btn_continue", type="primary"):
+        followup_files = None
+        followup_path = None
+
+        if followup_method == "📤 Upload files":
+            followup_files = st.file_uploader(
+                "Upload the requested log file(s)",
+                type=["txt", "log", "json", "csv", "xml", "html", "htm", "cfg", "tgz", "gz", "zip"],
+                accept_multiple_files=True,
+                key="followup_upload"
+            )
+        else:
+            default_path = st.session_state.base_path or ""
+            followup_path = st.text_input(
+                "Enter path to directory containing the requested files",
+                value=default_path,
+                placeholder=r"e.g., C:\logs\sosreport-xyz",
+                key="followup_path_input",
+                help="The system will search this directory for the files the AI requested "
+                     f"({', '.join(inv['requested_files'])})"
+            )
+
+        has_followup = followup_files or (followup_path and os.path.exists(followup_path))
+
+        if has_followup and st.button("Continue Investigation", key="btn_continue", type="primary"):
             if not groq_client:
                 st.error("Please enter your Groq API key in the sidebar.")
             else:
-                # Process newly uploaded files
                 new_entries = []
-                for f in followup_files:
-                    entries, log_type, _ = process_uploaded_file(f)
-                    new_entries.extend(entries)
+
+                if followup_files:
+                    for f in followup_files:
+                        file_entries, log_type, _ = process_uploaded_file(f)
+                        new_entries.extend(file_entries)
+                elif followup_path:
+                    with st.spinner(f"Searching {followup_path} for requested files..."):
+                        new_entries = scan_path_for_files(
+                            followup_path, inv["requested_files"]
+                        )
+                    if new_entries:
+                        found_files = sorted(set(f for f, _ in new_entries))
+                        st.success(f"Found {len(found_files)} matching file(s): {', '.join(found_files)}")
 
                 if not new_entries:
-                    st.warning("No important entries found in the uploaded files. Try a different file.")
+                    st.warning(
+                        "No matching entries found. Make sure the path contains the requested files "
+                        f"({', '.join(inv['requested_files'])})."
+                    )
                 else:
                     with st.spinner("AI agent is continuing the investigation with new files..."):
                         result = interactive_analyze_continue(
@@ -266,7 +377,7 @@ with tab1:
                         st.divider()
                         st.warning(
                             "🔎 **The AI agent needs more log files to continue.**\n\n"
-                            "Please upload:"
+                            "Provide these files:"
                         )
                         for fname in result["requested_files"]:
                             st.markdown(f"- **{fname}**")

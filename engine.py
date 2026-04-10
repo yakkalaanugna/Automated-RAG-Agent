@@ -430,6 +430,139 @@ def scan_log_folder(folder):
     return all_logs
 
 
+# Max size per file when scanning large directories (e.g., sosreport)
+MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024  # 100 MB
+
+# Extensions to scan inside sosreport/large directories
+SCAN_EXTENSIONS = (
+    ".txt", ".log", ".json", ".cfg", ".csv", ".xml", ".html", ".htm",
+    ".conf", ".out", ".err", ""
+)
+
+
+def scan_local_path(path, targeted_patterns=None):
+    """Scan a local directory path (e.g. sosreport folder) for log files.
+
+    Args:
+        path: absolute path to a directory or file
+        targeted_patterns: optional list of filename patterns to look for
+                          (e.g. ["uec_1", "syslog", "rain"]). If provided,
+                          only files matching these patterns are read.
+
+    Returns:
+        tuple: (entries, file_index)
+            entries: list of (filename, log_line) tuples
+            file_index: dict mapping short_name -> absolute_path for all found files
+    """
+    path = os.path.abspath(path)
+    entries = []
+    file_index = {}  # short_name -> full_path (for later targeted lookups)
+
+    if not os.path.exists(path):
+        return entries, file_index
+
+    # Single file
+    if os.path.isfile(path):
+        fname = os.path.basename(path)
+        file_index[fname] = path
+        if targeted_patterns is None or any(p.lower() in fname.lower() for p in targeted_patterns):
+            try:
+                size = os.path.getsize(path)
+                if size <= MAX_FILE_SIZE_BYTES:
+                    file_entries = read_filtered_logs(path, fname)
+                    entries.extend(file_entries)
+            except Exception:
+                pass
+        return entries, file_index
+
+    # Directory — walk and index all files, but only read matching ones
+    for root, dirs, files in os.walk(path):
+        # Skip hidden dirs, __pycache__, etc
+        dirs[:] = [d for d in dirs if not d.startswith('.') and d != '__pycache__']
+        for file in sorted(files):
+            filepath = os.path.join(root, file)
+            rel_path = os.path.relpath(filepath, path)
+            short_name = rel_path.replace("\\", "/")
+            file_index[short_name] = filepath
+
+            # Decide if we should read this file
+            should_read = False
+            file_lower = file.lower()
+
+            if targeted_patterns:
+                # Only read files matching the targeted patterns
+                should_read = any(p.lower() in file_lower or p.lower() in short_name.lower()
+                                  for p in targeted_patterns)
+            else:
+                # Default: read files matching important patterns or extensions
+                has_ext = any(file_lower.endswith(ext) for ext in SCAN_EXTENSIONS if ext)
+                no_ext = '.' not in file  # many log files have no extension
+                is_important = any(p in file_lower or p in short_name.lower()
+                                   for p in ARCHIVE_IMPORTANT_PATTERNS)
+                should_read = (has_ext or no_ext) and is_important
+
+            if should_read:
+                try:
+                    size = os.path.getsize(filepath)
+                    if size > MAX_FILE_SIZE_BYTES:
+                        continue
+                    file_entries = read_filtered_logs(filepath, short_name)
+                    entries.extend(file_entries)
+                except Exception:
+                    continue
+
+    return entries, file_index
+
+
+def scan_path_for_files(path, requested_files):
+    """Search a local path for specific files the AI requested.
+
+    Args:
+        path: base directory to search in
+        requested_files: list of filename patterns (e.g. ["uec_1.log", "syslog"])
+
+    Returns:
+        list of (filename, log_line) tuples from matched files
+    """
+    entries, _ = scan_local_path(path, targeted_patterns=requested_files)
+    return entries
+
+
+def list_local_path_files(path, max_files=200):
+    """List files in a local path (for showing the user what's available).
+
+    Returns:
+        list of dicts: [{name, rel_path, size_mb, is_important}]
+    """
+    path = os.path.abspath(path)
+    if not os.path.isdir(path):
+        return []
+
+    file_list = []
+    for root, dirs, files in os.walk(path):
+        dirs[:] = [d for d in dirs if not d.startswith('.') and d != '__pycache__']
+        for file in sorted(files):
+            filepath = os.path.join(root, file)
+            rel_path = os.path.relpath(filepath, path).replace("\\", "/")
+            try:
+                size = os.path.getsize(filepath)
+            except Exception:
+                size = 0
+            size_mb = round(size / (1024 * 1024), 2)
+            file_lower = file.lower()
+            important = any(p in file_lower or p in rel_path.lower()
+                            for p in ARCHIVE_IMPORTANT_PATTERNS)
+            file_list.append({
+                "name": file,
+                "rel_path": rel_path,
+                "size_mb": size_mb,
+                "is_important": important
+            })
+            if len(file_list) >= max_files:
+                return file_list
+    return file_list
+
+
 # -----------------------------
 # Groq LLM client
 # -----------------------------
