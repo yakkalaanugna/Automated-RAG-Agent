@@ -1,6 +1,19 @@
 # Iterative RAG Agent — Telecom Log Analyzer
 
-AI-powered telecom log analyzer using **RAG (Retrieval-Augmented Generation)** with an LLM agent to automatically investigate logs, trace errors, and identify root causes.
+AI-powered telecom log analyzer using **RAG (Retrieval-Augmented Generation)** to automatically investigate logs, trace errors, and identify root causes.
+
+Upload your telecom test logs → AI retrieves relevant entries via vector search → LLM analyzes and gives structured root cause diagnosis.
+
+## Screenshots
+
+### Single Log Analysis
+![Single Analysis](screenshots/single_analysis.png)
+
+### Pass vs Fail Comparison
+![Pass vs Fail](screenshots/pass_vs_fail.png)
+
+### Batch Analysis
+![Batch Analysis](screenshots/batch_analysis.png)
 
 ## Tech Stack
 
@@ -12,23 +25,34 @@ AI-powered telecom log analyzer using **RAG (Retrieval-Augmented Generation)** w
 | Framework | LangChain |
 | Web UI | Streamlit |
 
+## How It Works
+
+1. **Upload log files** — supports `.txt` `.log` `.json` `.csv` `.xml` `.html` `.cfg` `.tgz` `.zip`
+2. **Log parsing** — cleans ANSI codes, deduplicates, filters important lines using telecom-specific keywords
+3. **Severity detection** — classifies each entry as ERROR, FAIL, WARNING, or INFO
+4. **Vector embedding** — HuggingFace `all-MiniLM-L6-v2` embeds log entries into 384d vectors
+5. **ChromaDB storage** — vector store enables fast semantic retrieval
+6. **RAG chain** — retriever fetches top-k relevant logs → prompt template → Groq LLM generates analysis
+7. **Structured output** — Root Cause, Severity, Details, Recommendation
+
 ## Features
 
-- **Vector retrieval** — ChromaDB stores log embeddings, retriever finds semantically relevant entries
-- **RAG chain** — Retriever → Prompt → Groq LLM → structured root cause analysis
-- **All log formats** — `.txt` `.log` `.json` `.csv` `.xml` `.html` `.cfg` `.tgz` `.zip`
-- **Pass vs Fail comparison** — upload both logs, AI finds errors unique to the failure
-- **Batch analysis** — upload multiple files at once
-- **Cached embeddings** — HuggingFace model loaded once, fast reloads
+- **Vector retrieval** — ChromaDB stores embeddings, retriever finds semantically relevant entries for any query
+- **Pass vs Fail comparison** — upload both logs, finds errors unique to the failure (ignoring common noise)
+- **Batch analysis** — upload multiple files, all analyzed together
+- **Cached embeddings** — HuggingFace model loaded once via `@st.cache_resource`, fast on reruns
+- **Cached vectorstore** — same file content = same vectorstore, no re-embedding
+- **Archive support** — auto-extracts `.tgz` `.zip` archives, filters relevant files inside
 - **Telecom-specific** — keywords for eGate, RRC, NGAP, RACH, handover, beam failure, PDU session, etc.
 
 ## Project Structure
 
 ```
-├── rag_notebook.ipynb    # Full pipeline (step-by-step notebook)
-├── streamlit_app.py      # Web UI (generated from notebook)
+├── rag_notebook.ipynb    # Full pipeline (step-by-step Jupyter notebook)
+├── streamlit_app.py      # Web UI (Streamlit dashboard)
 ├── requirements.txt      # Python dependencies
 ├── data/logs/            # Sample log files
+├── screenshots/          # App screenshots for README
 └── .gitignore
 ```
 
@@ -46,101 +70,16 @@ pip install -r requirements.txt
 ```
 
 **3. Run the notebook:**
-Open `rag_notebook.ipynb` in VS Code or Jupyter and run all cells.
+Open `rag_notebook.ipynb` in VS Code or Jupyter and run all cells step by step.
 
-**4. Or run Streamlit directly:**
+**4. Or run the Streamlit app directly:**
 ```bash
 streamlit run streamlit_app.py
 ```
-Then enter your Groq API key in the sidebar and upload log files.
+Enter your **Groq API key** in the sidebar and upload log files.
 
-## Get a Groq API Key
+## Groq API Key
 
-Free at https://console.groq.com/keys — no credit card needed.
-# Automated Root Cause Analysis using RAG + Agent
+Get a free key at https://console.groq.com/keys — no credit card needed.
 
-An AI-powered **telecom automated testing log analyzer** that combines Retrieval-Augmented Generation (RAG) with an LLM Agent (Groq API) to automatically investigate logs, trace errors, and identify root causes.
-
-Designed specifically for **telecom test execution environments** — supports eGate console logs, e2e test output, worker logs, syslog, and sosreport archives. Drop your test logs in, press Enter, and let the agent diagnose failures automatically.
-
-## Who Is This For?
-
-- Telecom engineers debugging **automated test failures**
-- Teams working with **eGate simulator**, **e2e test frameworks**, or **Nokia RAN test environments**
-- Anyone dealing with large, noisy test execution logs who wants AI-driven root cause analysis
-
-## Features
-
-- **Web Dashboard** — Streamlit-based UI for easy file upload and interactive analysis
-- **Pass vs Fail Log Comparison** — upload both pass and fail logs, AI identifies errors unique to the fail run (ignoring common noise)
-- **Auto-detect log format** — JSON, CSV, XML, HTML, plain text — parsed automatically
-- **Telecom-specific prompt engineering** — LLM prompts tailored for eGate, e2e, Robot Framework, syslog
-- Fast semantic search with FAISS and sentence-transformers
-- Groq LLM Agent (Llama-3.3-70b-versatile) — free tier, no credit card needed
-- **LLM-driven investigation** — agent decides which log files to check next
-- Supports telecom log formats: eGate console, e2e output, worker logs, syslog, sosreport
-- Auto-extracts archives (.tgz, .tar.gz, .zip) — no manual extraction needed
-- Smart filtering — strips ANSI codes, deduplicates, keeps only important lines
-- Auto-analyze mode (CLI) — just press Enter, no need to type a question
-- Batch analysis — upload multiple files at once
-- Secure API key management with `.env`
-
-## Project Structure
-
-```
-├── app.py                # Web UI (Streamlit dashboard)
-├── engine.py             # Core analysis engine (shared logic)
-├── rag_system.py         # CLI analyzer
-├── build_vector_store.py # Force-rebuild the vector store
-├── retriever.py          # Simple query tool
-├── vector_store.py       # Vector store builder
-├── loader.py             # Log file loader
-├── embedder.py           # Embedding helper
-├── auto_rebuild.py       # Watch folder for changes
-├── requirements.txt      # Python dependencies
-├── .env.example          # API key template
-└── data/logs/            # Put your log files here
-```
-
-## Getting Started
-
-**1. Clone the repo:**
-```
-git clone https://github.com/yakkalaanugna/Automated-RAG-Agent.git
-cd Automated-RAG-Agent
-```
-
-**2. Create a virtual environment and install requirements:**
-```
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-**3. Set up your API key:**
-- Copy `.env.example` to `.env`
-- Get a free Groq API key from https://console.groq.com/keys
-- Add it to your `.env` file:
-  ```
-  GROQ_API_KEY=gsk_your_key_here
-  ```
-
-**4. Add your log files to `data/logs/`**  
-Supported: `.log`, `.txt`, `.json`, `.csv`, `.xml`, `.html`, `.cfg`, `.tgz`, `.tar.gz`, `.zip`
-
-**5. Run the Web UI:**
-```
-streamlit run app.py
-```
-This opens a browser dashboard where you can upload files, compare pass/fail logs, and get AI analysis.
-
-**Or run the CLI analyzer:**
-```
-python rag_system.py
-```
-Press **Enter** to auto-analyze all logs, or type a specific question.
-
-## Security
-
-- **Never commit your `.env` file** — it is git-ignored by default.
-- Only `.env.example` is included in the repo as a template.
+Uses **Llama 3.3 70B** model via Groq's fast inference API.

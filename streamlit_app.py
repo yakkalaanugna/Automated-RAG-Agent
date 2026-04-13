@@ -31,10 +31,16 @@ ARCHIVE_PATTERNS = [
 ]
 SEV_BADGE = {"ERROR": "\U0001f534", "FAIL": "\U0001f534", "WARNING": "\U0001f7e1", "INFO": "\U0001f535"}
 
-# ─── Cached embedding model (loaded once, reused) ───
+# ─── Cached embedding model — loaded ONCE across all reruns ───
 @st.cache_resource
 def get_embeddings():
     return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+
+# ─── Cached vectorstore — keyed by content hash, not rebuilt on rerun ───
+@st.cache_resource
+def get_vectorstore(_emb, content_hash, entries_tuple, collection_name):
+    docs = [Document(page_content=m, metadata={"source": f, "severity": detect_severity(m)}) for f, m in entries_tuple]
+    return Chroma.from_documents(docs, _emb, collection_name=f"{collection_name}_{content_hash[:8]}")
 
 # ─── Log Processing ───
 def clean_line(line):
@@ -85,21 +91,16 @@ def parse_archive_bytes(data, name):
 def process_file(uploaded):
     raw = uploaded.read()
     if uploaded.name.lower().endswith(ARCHIVE_EXT):
-        return parse_archive_bytes(raw, uploaded.name)
-    return parse_content(raw.decode("utf-8", errors="ignore"), uploaded.name)
-
-# ─── Vector store builder (cached per file content hash) ───
-def build_vectorstore(entries, collection_name):
-    emb = get_embeddings()
-    docs = [Document(page_content=m, metadata={"source": f, "severity": detect_severity(m)}) for f, m in entries]
-    vs = Chroma.from_documents(docs, emb, collection_name=collection_name)
-    return vs
+        return parse_archive_bytes(raw, uploaded.name), raw
+    return parse_content(raw.decode("utf-8", errors="ignore"), uploaded.name), raw
 
 def format_docs(docs):
     return "\n".join(f"[{d.metadata.get('severity','?')}] [{d.metadata.get('source','?')}] {d.page_content}" for d in docs)
 
 def run_rag(entries, question, api_key, collection_name="analysis"):
-    vs = build_vectorstore(entries, collection_name)
+    emb = get_embeddings()
+    content_hash = hashlib.md5(str(entries).encode()).hexdigest()
+    vs = get_vectorstore(emb, content_hash, tuple(entries), collection_name)
     ret = vs.as_retriever(search_kwargs={"k": min(5, len(entries))})
     llm = ChatGroq(groq_api_key=api_key, model_name="llama-3.3-70b-versatile", max_tokens=800)
     prompt = ChatPromptTemplate.from_template(
@@ -112,9 +113,9 @@ def run_rag(entries, question, api_key, collection_name="analysis"):
     return chain.invoke(question)
 
 # ─── Page Setup ───
-st.set_page_config(page_title="Iterative RAG Agent — Telecom Log Analyzer", page_icon="📡", layout="wide")
-st.markdown("# 📡 Iterative RAG Agent — Telecom Log Analyzer")
-st.markdown("Upload logs → Vector retrieval → AI root cause analysis")
+st.set_page_config(page_title="Iterative RAG Agent", page_icon="\U0001f4e1", layout="wide")
+st.markdown("# \U0001f4e1 Iterative RAG Agent — Telecom Log Analyzer")
+st.markdown("Upload logs \u2192 Vector retrieval \u2192 AI root cause analysis")
 st.divider()
 
 FILE_TYPES = ["txt","log","json","csv","xml","html","htm","cfg","tgz","gz","zip"]
@@ -123,23 +124,26 @@ with st.sidebar:
     st.header("Settings")
     api_key = st.text_input("Groq API Key", type="password", help="https://console.groq.com/keys")
     st.divider()
-    st.markdown("**Supported:** `.txt` `.log` `.json` `.csv` `.xml` `.html` `.cfg` `.tgz` `.zip`")
+    st.markdown("**Supported formats:**")
+    st.markdown("`.txt` `.log` `.json` `.csv` `.xml` `.html` `.cfg` `.tgz` `.zip`")
 
 if not api_key:
     st.info("Enter your Groq API key in the sidebar to start.")
     st.stop()
 
+# Pre-warm embedding model on first load
+get_embeddings()
+
 tab1, tab2, tab3 = st.tabs(["Single Analysis", "Pass vs Fail", "Batch Analysis"])
 
-# ═══ TAB 1 ═══
+# === TAB 1: Single Analysis ===
 with tab1:
     st.subheader("Upload a log file for AI analysis")
     uploaded = st.file_uploader("Log file", type=FILE_TYPES, key="single")
     query = st.text_input("Question (optional)", placeholder="e.g., Why did UE connection fail?", key="q1")
 
     if uploaded and st.button("Analyze", type="primary", key="b1"):
-        with st.spinner("Processing log..."):
-            entries = process_file(uploaded)
+        entries, _ = process_file(uploaded)
         if not entries:
             st.warning("No important entries found in this file.")
         else:
@@ -153,12 +157,12 @@ with tab1:
                     st.text(f"{SEV_BADGE.get(detect_severity(m),'')} [{fn}] {m}")
 
             st.divider()
-            with st.spinner("AI analyzing with vector retrieval..."):
+            with st.spinner("Running RAG analysis..."):
                 q = query if query else "Analyze all errors and find root cause"
-                result = run_rag(entries, q, api_key, "single_analysis")
+                result = run_rag(entries, q, api_key, "single")
             st.markdown(result)
 
-# ═══ TAB 2 ═══
+# === TAB 2: Pass vs Fail ===
 with tab2:
     st.subheader("Compare PASS and FAIL logs")
     c1, c2 = st.columns(2)
@@ -166,35 +170,34 @@ with tab2:
     with c2: fail_file = st.file_uploader("FAIL log", type=FILE_TYPES, key="fail")
 
     if pass_file and fail_file and st.button("Compare", type="primary", key="b2"):
-        with st.spinner("Comparing with vector retrieval..."):
-            pass_entries = process_file(pass_file)
-            fail_entries = process_file(fail_file)
+        pass_entries, _ = process_file(pass_file)
+        fail_entries, _ = process_file(fail_file)
 
-            pass_msgs = set(m for _, m in pass_entries)
-            common = [(f, m) for f, m in fail_entries if m in pass_msgs]
-            fail_only = [(f, m) for f, m in fail_entries if m not in pass_msgs]
+        pass_msgs = set(m for _, m in pass_entries)
+        common = [(f, m) for f, m in fail_entries if m in pass_msgs]
+        fail_only = [(f, m) for f, m in fail_entries if m not in pass_msgs]
 
-            mc = st.columns(3)
-            mc[0].metric("PASS entries", len(pass_entries))
-            mc[1].metric("Common (ignorable)", len(common))
-            mc[2].metric("FAIL-only (critical)", len(fail_only))
+        mc = st.columns(3)
+        mc[0].metric("PASS entries", len(pass_entries))
+        mc[1].metric("Common (ignorable)", len(common))
+        mc[2].metric("FAIL-only (critical)", len(fail_only))
 
-            if fail_only:
-                with st.expander("Critical Errors (FAIL only)", expanded=True):
-                    for _, l in fail_only[:20]: st.text(f"\U0001f534 {l}")
-            if common:
-                with st.expander("Ignorable (both logs)"):
-                    for _, l in common[:20]: st.text(f"\u26aa {l}")
+        if fail_only:
+            with st.expander("Critical Errors (FAIL only)", expanded=True):
+                for _, l in fail_only[:20]: st.text(f"\U0001f534 {l}")
+        if common:
+            with st.expander("Ignorable (both logs)"):
+                for _, l in common[:20]: st.text(f"\u26aa {l}")
 
-            if fail_only:
-                st.divider()
-                with st.spinner("AI analyzing FAIL-only errors with vector retrieval..."):
-                    result = run_rag(fail_only, "Analyze these FAIL-only errors. What caused the failure? Compare with common errors that appear in both PASS and FAIL.", api_key, "comparison")
-                st.markdown(result)
-            else:
-                st.success("No unique errors in FAIL log — logs are identical.")
+        if fail_only:
+            st.divider()
+            with st.spinner("Running RAG analysis on FAIL-only errors..."):
+                result = run_rag(fail_only, "Analyze these FAIL-only errors. What caused the failure?", api_key, "comparison")
+            st.markdown(result)
+        else:
+            st.success("No unique errors in FAIL log.")
 
-# ═══ TAB 3 ═══
+# === TAB 3: Batch Analysis ===
 with tab3:
     st.subheader("Upload multiple log files")
     batch = st.file_uploader("Log files", type=FILE_TYPES, accept_multiple_files=True, key="batch")
@@ -203,16 +206,16 @@ with tab3:
     if batch and st.button("Analyze All", type="primary", key="b3"):
         all_entries = []
         for f in batch:
-            entries = process_file(f)
+            entries, _ = process_file(f)
             st.text(f"  {f.name}: {len(entries)} entries")
             all_entries.extend(entries)
 
         st.metric("Total Entries", len(all_entries))
         if all_entries:
-            with st.spinner("AI analyzing all files with vector retrieval..."):
+            with st.spinner("Running RAG analysis on all files..."):
                 q = bq if bq else "Analyze all errors and find root cause"
-                result = run_rag(all_entries, q, api_key, "batch_analysis")
+                result = run_rag(all_entries, q, api_key, "batch")
             st.markdown(result)
 
 st.divider()
-st.caption("Iterative RAG Agent — LangChain + ChromaDB + HuggingFace + Groq")
+st.caption("Iterative RAG Agent \u2014 LangChain + ChromaDB + HuggingFace + Groq")
