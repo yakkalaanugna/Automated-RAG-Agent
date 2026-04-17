@@ -24,3 +24,10 @@ chroma_db/
 
 # Notebook checkpoints
 .ipynb_checkpoints/
+
+# Auto-generated data
+data/memory_store.json
+
+# OS
+.DS_Store
+Thumbs.db

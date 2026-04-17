@@ -5,3 +5,6 @@ chromadb
 sentence-transformers
 groq
 streamlit
+pandas
+matplotlib
+python-dotenv

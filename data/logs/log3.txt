@@ -1,3 +1,10 @@
-High latency detected in network.
-Packet delay exceeded limit.
-Traffic congestion observed.
+7d ASP-2834-2-cp_ue <2026-04-15T18:34:08.586828Z> 62-cp_ue DBG/cp_ue/CuUeReleaseSaEventHandler.cpp:160 PCMD Record for CuUeReleaseSaEventHandler collect UeSetupSuccessEvent
+7e ASP-2834-2-cp_ue <2026-04-15T18:34:08.586829Z> 62-cp_ue DBG/cp_ue/CuUeReleaseSaEventHandler.cpp:169 PCMD Record for CuUeReleaseSaEventHandler collect UeInactivityEvent
+7f ASP-2834-2-cp_ue <2026-04-15T18:34:08.586830Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:4] [ueIdCu:4] Trigger ue release
+80 ASP-2834-2-cp_ue <2026-04-15T18:34:09.100000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:290 [ueIdCu:4] UE Context Release initiated by CU-CP
+59 ASP-2733-Disp_1 <2026-04-15T18:34:10.720780Z> 152018F-RlcDlDrbQ1 INF/L2HiDu, g1r002nDEF9ucp2C000t000Dh04/Ln:114/STATS-DL-RLC Total In:379717891 B, Out InitTx:379717891 B, Out ReTx:100135 B, Out ProReTx:0 B, lostPktsF1:0, loQueueTimeF1:0, srDropTh:0, dropped:0
+81 ASP-2834-2-cp_ue <2026-04-15T18:34:15.200000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:1] [ueIdCu:1] Trigger ue release
+98 ASP-2733-Disp_1 <2026-04-15T18:34:16.720780Z> 152018F-RlcDlDrbQ1 INF/L2HiDu, g1r002nDEF9ucp2C000t000Dh04/Ln:114/STATS-DL-RLC Total In:379717891 B, Out InitTx:379717891 B, Out ReTx:227445 B, Out ProReTx:0 B, lostPktsF1:0, loQueueTimeF1:0, srDropTh:0, dropped:0
+ERROR!! 18:34:20'396"958|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE4 BID1 TRF0]: long forward jump of pn (167942->168064 delta=122)
+ERROR!! 18:34:20'398"956|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE1 BID1 TRF0]: long forward jump of pn (168114->168235 delta=121)
+ERROR!! 18:34:20'400"014|351ba6c0 PacketReceiver.cpp[777]:TRF:Rx[UE4 BID1 TRF0]: 11 packets lost due to long forward jump

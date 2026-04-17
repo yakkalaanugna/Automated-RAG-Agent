@@ -1,3 +1,14 @@
-UE11 DL Data Loss detected.
-Packets mismatch threshold exceeded.
-Test failed due to network congestion.
+18:34:05.100 18:34:05.100 [39;49mINF[0m: UEC-1: UE4: UE4: Starting Registration Procedure
+18:34:06.250 18:34:06.250 [39;49mINF[0m: AMF-1: GNB-2: Registration Accept sent for UE4
+18:34:07.300 18:34:07.300 [39;49mINF[0m: UEC-1: UE4: PDU Session Establishment Accept received
+18:34:08.417 18:34:08.417 [37;41mACR[0m: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message
+18:34:09.500 18:34:09.500 [39;49mINF[0m: UEC-1: UE4: Cancel All Active Fsm before CTRL_DEL_UE : UE4
+18:34:12.394 18:34:12.394 [39;49mINF[0m: AMF-1: UE CONTEXT RELEASE REQUEST: gNB=2, AMF_UE_NGAP_ID=11
+18:34:12.394 18:34:12.394 [39;49mINF[0m: AMF-1: UE CONTEXT RELEASE REQUEST: gNB=2, RAN_UE_NGAP_ID=40960.
+18:34:12.395 18:34:12.395 [39;49mINF[0m: AMF-1: GNB-2: [NgLink::OnReceiveUeContextReleaseRequest]::Received UE CONTEXT RELEASE REQUEST from GNB-2 handled successfully
+18:34:12.450 18:34:12.450 [39;49mINF[0m: AMF-1: UE CONTEXT RELEASE COMPLETE: gNB=2, AMF_UE_NGAP_ID=11
+18:34:12.460 18:34:12.460 [39;49mINF[0m: UEC-1: UE4: Ignoring Rrc Release in NAS-FIVEGS-SM-PDU-SESSION-ACTIVE-IDLE
+18:34:12.470 18:34:12.470 [39;49mINF[0m: UEC-1: UE4: IS IDLE
+18:34:15.100 18:34:15.100 [37;41mACR[0m: UEC-1: UE1: Received RRC Release while in FIVE-GS-MM-REGISTERED state
+18:34:15.200 18:34:15.200 [39;49mINF[0m: UEC-1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB
+18:34:15.300 18:34:15.300 [39;49mINF[0m: AMF-1: UE CONTEXT RELEASE COMPLETE: gNB=2, AMF_UE_NGAP_ID=1

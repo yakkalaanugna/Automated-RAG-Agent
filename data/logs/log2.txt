@@ -1,3 +1,10 @@
-Registration failure observed.
-AMF connection timeout.
-UE attach procedure failed.
+d 18:34:08'416"752|75bb06c0 NrRrcMsgHandler.cpp[343]:UE4: received DL-DCCH-NR (33 bytes)
+d 18:34:08'417"156|75bb06c0 NrRrcMsgHandler.cpp[457]:nr_rrc::c1_rrcReconfiguration_chosen
+ERROR!! 18:34:08'417"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message
+d 18:34:08'417"479|75bb06c0 Enter virtual void RrcFsm::OnRrcReconfigurationFailure()
+d 18:34:09'500"100|75bb06c0 rfma_impl.cpp[92]:UEC-1: UE4: Cancel All Active Fsm before CTRL_DEL_UE : UE4
+d 18:34:15'100"000|75bb06c0 NrRrcMsgHandler.cpp[343]:UE1: received DL-DCCH-NR (28 bytes)
+d 18:34:15'100"200|75bb06c0 NrRrcMsgHandler.cpp[457]:nr_rrc::c1_rrcRelease_chosen
+ERROR!! 18:34:15'100"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB
+d 18:34:15'100"479|75bb06c0 Enter virtual void RrcFsm::OnRrcRelease()
+d 18:34:15'200"000|75bb06c0 NrRrcMsgHandler.cpp[500]:UE1: IS IDLE
