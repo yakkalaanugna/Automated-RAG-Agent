@@ -261,9 +261,13 @@ The dashboard provides three analysis modes:
 
 ## Author
 
-**Anugna Yakkala**  
-M.S. Computer Science Student  
-Built during internship research at Nokia, Bangalore — based on observations of real-world telecom log analysis challenges in 5G network diagnostics.
+Developed by **Anugna Yakkala**
+
+Integrated M.Tech CSE (Data Science)  
+Internship: Nokia (Test Automation & Log Analysis)
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Anugna%20Yakkala-blue?logo=linkedin)](https://www.linkedin.com/in/anugna-yakkala-b6383a24b/)
+[![GitHub](https://img.shields.io/badge/GitHub-yakkalaanugna-black?logo=github)](https://github.com/yakkalaanugna/Automated-RAG-Agent)
 
 ---
 
