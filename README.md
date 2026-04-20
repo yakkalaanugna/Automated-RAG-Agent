@@ -162,6 +162,12 @@ pytest tests/ -v
 
 ---
 
+## 📄 Paper
+
+Read the full paper here: [PDF](paper/adaptive_iterative_rag.pdf)
+
+---
+
 ## Citation
 
 ```bibtex
