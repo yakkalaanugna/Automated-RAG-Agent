@@ -12,6 +12,7 @@ We analyze the interaction between retrieval quality and reasoning performance i
 - **What:** Automatically identifies root causes in telecom network logs using iterative retrieval and LLM-based reasoning  
 - **Why:** Single-pass RAG fails to capture multi-file causal chains; fixed iteration wastes computation  
 - **How:** Query → Hybrid Retrieval (BM25 + Dense) → Cross-Encoder Reranking → Confidence-Guided Iteration → LLM Analysis
+  
 This work complements existing telecom RAG systems by focusing on the relationship between retrieval quality and downstream reasoning performance.
 ---
 
