@@ -1,5 +1,5 @@
 # Adaptive Iterative RAG for Telecom Log Root Cause Analysis
-A research project exploring how **iterative retrieval improves evidence quality but does not necessarily improve reasoning accuracy** in RAG systems.
+We analyze the interaction between retrieval quality and reasoning performance in iterative RAG systems and show that improvements in retrieval precision do not necessarily translate into improved downstream reasoning accuracy.
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![LLM](https://img.shields.io/badge/LLM-Llama%203.3%2070B-orange.svg)](https://groq.com/)
