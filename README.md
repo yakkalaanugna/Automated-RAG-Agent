@@ -1,6 +1,7 @@
 # Adaptive Iterative RAG for Telecom Log Root Cause Analysis
-We analyze the interaction between retrieval quality and reasoning performance in iterative RAG systems and show that improvements in retrieval precision do not necessarily translate into improved downstream reasoning accuracy.
+We analyze the interaction between retrieval quality and reasoning performance in iterative Retrieval-Augmented Generation (RAG) systems, showing that improvements in retrieval precision do not necessarily translate into improved downstream reasoning accuracy.
 
+**Tech Stack:**
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![LLM](https://img.shields.io/badge/LLM-Llama%203.3%2070B-orange.svg)](https://groq.com/)
 [![Framework](https://img.shields.io/badge/Framework-LangChain-green.svg)](https://langchain.com/)
@@ -8,17 +9,17 @@ We analyze the interaction between retrieval quality and reasoning performance i
 
 ## TL;DR
 
-- **What:** Automatically finds root causes in telecom network logs using iterative retrieval + LLM reasoning
-- **Why:** Single-pass RAG misses multi-file causal chains; fixed iteration wastes compute on easy queries
-- **How:** `Query → Hybrid Retrieval (BM25+Dense) → Cross-Encoder Reranking → Confidence-Gated Iteration → LLM Analysis`
-
+**What:** Automatically identifies root causes in telecom network logs using iterative retrieval and LLM-based reasoning  
+**Why:** Single-pass RAG fails to capture multi-file causal chains; fixed iteration wastes computation  
+**How:** Query → Hybrid Retrieval (BM25 + Dense) → Cross-Encoder Reranking → Confidence-Guided Iteration → LLM Analysis
+This work complements existing telecom RAG systems by focusing on the relationship between retrieval quality and downstream reasoning performance.
 ---
 
 ## Motivation
 
-- **Noisy logs** — vendor-specific formats, inconsistent timestamps, error codes buried in free text
-- **Implicit causal chains** — one failure spans multiple files (RRC failure → bearer cancellation → UE release) with no explicit links
-- **Multi-step reasoning** — tracing the full chain needs cross-file correlation that a single retrieval pass misses
+- Noisy logs — vendor-specific formats, inconsistent timestamps, and error codes embedded in free text  
+- Implicit causal chains — failures span multiple files (e.g., RRC failure → bearer cancellation → UE release) without explicit links  
+- Multi-step reasoning — tracing failures requires cross-file correlation beyond single-pass retrieval  
 
 ---
 
@@ -39,8 +40,8 @@ Query → Log Parser → Hybrid Retrieval (BM25 + Dense)
 
 | Component | What it does |
 |-----------|-------------|
-| **Hybrid Retrieval** | BM25 + dense vectors → 20–30 candidates. BM25 catches error codes; dense captures semantics |
-| **Cross-Encoder Reranking** | `ms-marco-MiniLM-L-6-v2` (22M params) rescores (query, doc) pairs. Reranks only — doesn't affect recall |
+| **Hybrid Retrieval** | Retrieves 20–30 candidates using BM25 + dense embeddings |
+| **Cross-Encoder Reranking** | `ms-marco-MiniLM-L-6-v2` (22M params) rescores (query, document) pairs; improves precision without affecting recall |
 | **Iterative Refinement** | LLM rewrites query using discovered error codes/timestamps → retrieves corroborating evidence |
 | **Confidence Stopping** | 4-signal score (retrieval quality, completeness, evidence density, consistency) → stops early or iterates |
 
@@ -61,7 +62,7 @@ Query → Log Parser → Hybrid Retrieval (BM25 + Dense)
 
 ## Results
 
-Preliminary results on a small corpus (3 log files, ~30 records, 3 queries). **Not statistically significant.**
+Preliminary results on a small corpus (3 log files, ~30 records, 3 queries). These results are indicative and not statistically significant.
 
 | Method | Precision@K | Root Cause Acc. | Latency |
 |--------|:-----------:|:---------------:|:-------:|
@@ -69,7 +70,7 @@ Preliminary results on a small corpus (3 log files, ~30 records, 3 queries). **N
 | Fixed Iterative | ~0.69 | ~0.67 | ~20s |
 | **Adaptive (ours)** | **0.80–0.85** | ~0.67 | ~16s |
 
-- **Improved:** Precision@K — cross-encoder reranking surfaces more relevant docs. Most gain from reranking; iteration adds robustness.
+- **Observation:** Precision@K — improves primarily due to cross-encoder reranking.
 - **Unchanged:** Root Cause Accuracy — same frozen LLM across all methods. Better retrieval ≠ better reasoning.
 - **Tradeoff:** ~16s vs ~2.5s latency (cross-encoder + iteration overhead).
 
@@ -172,7 +173,7 @@ Read the full paper here: [PDF](paper/adaptive_iterative_rag.pdf)
 ## Citation
 
 ```bibtex
-@misc{yakkala2025adaptiverag,
+@misc{yakkala2026adaptiverag,
   title   = {Adaptive Iterative RAG for Telecom Log Root Cause Analysis},
   author  = {Yakkala, Anugna},
   year    = {2025},
@@ -185,7 +186,7 @@ Read the full paper here: [PDF](paper/adaptive_iterative_rag.pdf)
 ## Author
 
 **Anugna Yakkala** 
-— Integrated M.Tech in Computer Science and Engineering (Specialization: Data Science)
+Integrated M.Tech in Computer Science and Engineering (Specialization: Data Science)
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Anugna%20Yakkala-blue?logo=linkedin)](https://www.linkedin.com/in/anugna-yakkala-b6383a24b/)
 [![GitHub](https://img.shields.io/badge/GitHub-yakkalaanugna-black?logo=github)](https://github.com/yakkalaanugna/Automated-RAG-Agent)
