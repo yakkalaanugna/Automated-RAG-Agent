@@ -177,7 +177,8 @@ pytest tests/ -v
 
 ## Author
 
-**Anugna Yakkala** — Integrated M.Tech CSE (Data Science) · Nokia Internship (Test Automation & Log Analysis)
+**Anugna Yakkala** 
+— Integrated M.Tech CSE (Data Science) 
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Anugna%20Yakkala-blue?logo=linkedin)](https://www.linkedin.com/in/anugna-yakkala-b6383a24b/)
 [![GitHub](https://img.shields.io/badge/GitHub-yakkalaanugna-black?logo=github)](https://github.com/yakkalaanugna/Automated-RAG-Agent)
