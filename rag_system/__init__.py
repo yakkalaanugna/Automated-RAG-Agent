@@ -1,4 +1,4 @@
-# Adaptive Iterative RAG — Telecom Log Root Cause Analysis
+# Analyzing the Retrieval–Reasoning Gap in Adaptive RAG Systems
 # Modular package for research-grade RAG system
 #
 # Heavy imports (retriever, adaptive_agent) are lazy to keep test collection

@@ -1,4 +1,4 @@
-# Adaptive Iterative RAG for Telecom Log Root Cause Analysis
+# Analyzing the Retrieval–Reasoning Gap in Adaptive RAG Systems
 We analyze the interaction between retrieval quality and reasoning performance in iterative Retrieval-Augmented Generation (RAG) systems, showing that improvements in retrieval precision do not necessarily translate into improved downstream reasoning accuracy.
 
 **Tech Stack:**
@@ -175,7 +175,7 @@ Read the full paper here: [PDF](paper/adaptive_iterative_rag.pdf)
 
 ```bibtex
 @misc{yakkala2026adaptiverag,
-  title   = {Adaptive Iterative RAG for Telecom Log Root Cause Analysis},
+  title   = {Analyzing the Retrieval--Reasoning Gap in Adaptive RAG Systems},
   author  = {Yakkala, Anugna},
   year    = {2025},
   url     = {https://github.com/yakkalaanugna/Automated-RAG-Agent}

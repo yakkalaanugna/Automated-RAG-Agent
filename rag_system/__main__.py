@@ -19,7 +19,7 @@ load_dotenv()
 def main():
     parser = argparse.ArgumentParser(
         prog="rag_system",
-        description="Adaptive Iterative RAG for Telecom Log Root Cause Analysis",
+        description="Analyzing the Retrieval–Reasoning Gap in Adaptive RAG Systems",
     )
     parser.add_argument("query", help="Analysis query (e.g., 'Why did UE4 fail?')")
     parser.add_argument("--logs", default="data/logs", help="Path to log files directory")
