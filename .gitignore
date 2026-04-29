@@ -28,6 +28,13 @@ chroma_db/
 # Auto-generated data
 data/memory_store.json
 
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.synctex.gz
+paper_old.tex
+
 # OS
 .DS_Store
 Thumbs.db

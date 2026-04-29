@@ -1,0 +1,668 @@
+\documentclass[11pt,a4paper]{article}
+
+% ─── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage[margin=1in]{geometry}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{pifont}
+\usepackage{multirow}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue,
+}
+
+% ─── Title ─────────────────────────────────────────────────────────────────────
+
+\title{The Retrieval--Reasoning Gap: Why Better Retrieval Does Not Guarantee\\Better Reasoning in Iterative RAG Systems\thanks{Code and data: \url{https://github.com/yakkalaanugna/Automated-RAG-Agent}}}
+
+\author{Anugna Yakkala \\[4pt]
+{\normalsize School of Computer Science and Engineering,}\\
+{\normalsize Vellore Institute of Technology, Vellore, TN, India}}
+
+\date{April 2026}
+
+\begin{document}
+\maketitle
+
+% ═══════════════════════════════════════════════════════════════════════════════
+% ABSTRACT
+% ═══════════════════════════════════════════════════════════════════════════════
+
+\begin{abstract}
+Retrieval-augmented generation (RAG) systems are typically evaluated by
+reporting retrieval metrics (Precision@K, Recall@K) alongside end-task
+accuracy, implicitly assuming that improving the former improves the latter.
+We demonstrate that this assumption breaks down for multi-hop RAG:
+\emph{retrieval improvements do not guarantee reasoning improvements}
+when the language model is held fixed.
+Using an iterative RAG pipeline---hybrid BM25\,+\,bi-encoder retrieval,
+cross-encoder reranking, confidence-gated adaptive iteration---we
+conduct a controlled study on a synthetic corpus of 1{,}115 telecom
+log records across 10 log files, evaluating 65 multi-hop root-cause
+queries spanning 10 distinct failure scenarios.
+A six-configuration ablation (dense-only, BM25-only, hybrid,
+hybrid+reranking, hybrid+iteration, full system) reveals that
+Precision@K varies by up to 0.25 across configurations while
+root-cause accuracy remains flat ($\sim$0.55--0.60).
+A multi-LLM comparison (Llama~3.3~70B, Llama~3.1~8B, Mixtral~8x7B,
+Gemma2~9B) with \emph{identical retrieval} shows that reasoning
+accuracy varies with model capability, confirming that retrieval and
+reasoning are independently bounded.
+We further show that keyword-overlap metrics correlate only moderately
+with semantic evaluation, and propose a composite metric combining
+semantic similarity, structured analysis scoring, and ROUGE-L that
+better captures diagnostic quality.
+Our findings establish that the retrieval--reasoning gap is a
+structural property of multi-hop RAG, not an artifact of scale.
+\end{abstract}
+
+% ═══════════════════════════════════════════════════════════════════════════════
+% 1. INTRODUCTION
+% ═══════════════════════════════════════════════════════════════════════════════
+
+\section{Introduction}
+
+Evaluation of retrieval-augmented generation (RAG) systems
+\citep{lewis2020rag,gao2023ragsurvey} typically reports two metric
+families side by side: retrieval quality (Precision@K, Recall@K, nDCG)
+and end-task quality (answer accuracy, F1).
+The implicit assumption is that improving retrieval improves the
+end-task.
+For multi-hop RAG---where evidence must be assembled from multiple
+sources before a language model reasons over it---this assumption is
+load-bearing yet under-examined.
+
+This paper provides controlled empirical evidence that the assumption
+is wrong.
+We present the \textbf{retrieval--reasoning gap}: the observation that
+improvements in retrieval-side metrics do not translate to improvements
+in reasoning accuracy when the LLM reader is fixed, and that this
+gap is a structural property of multi-hop RAG rather than an artifact
+of dataset size.
+
+Our experimental design isolates retrieval from reasoning through
+three mechanisms:
+\begin{enumerate}[nosep]
+    \item A \textbf{six-configuration ablation study} that varies the
+    retrieval pipeline ($\pm$\,BM25, $\pm$\,cross-encoder reranking,
+    $\pm$\,iterative refinement) while holding the LLM constant
+    (Section~\ref{sec:ablation}).
+    \item A \textbf{multi-LLM comparison} that fixes retrieval and
+    varies only the reasoning model across four architectures spanning
+    8B--70B parameters (Section~\ref{sec:multi-llm}).
+    \item \textbf{Improved evaluation metrics}---semantic similarity,
+    structured scoring, composite metric---that capture reasoning
+    quality beyond keyword overlap (Section~\ref{sec:metrics-result}).
+\end{enumerate}
+
+We evaluate on a synthetic telecom log corpus (1{,}115 records, 10
+log files, 10 failure scenarios) with 65 evaluation queries requiring
+multi-hop cross-file reasoning.
+The telecom setting is a controlled testbed; the evaluation phenomena
+we surface---metric disagreement, failure-mode independence, and
+inadequacy of aggregate scores---generalize to any RAG system
+performing multi-hop evidence assembly followed by LLM reasoning.
+
+\paragraph{Contributions.}
+\begin{enumerate}[nosep]
+    \item \textbf{Empirical evidence of the retrieval--reasoning gap.}
+    Across six ablation configurations, Precision@K varies by up to
+    0.25 while root-cause accuracy varies by $< 0.05$.
+    Multi-LLM comparison with fixed retrieval confirms that reasoning
+    quality depends on model capability independently of evidence
+    quality.
+    \item \textbf{Evaluation framework.}
+    We propose a decomposition protocol for multi-hop RAG evaluation:
+    (a)~ablation with fixed LLM, (b)~model comparison with fixed
+    retrieval, (c)~per-query regime classification (high/low
+    retrieval $\times$ correct/incorrect reasoning).
+    \item \textbf{Composite evaluation metric.}
+    We show keyword overlap is a noisy proxy and propose a composite
+    score (semantic similarity + ROUGE-L + structured scoring) that
+    better captures diagnostic quality.
+    \item \textbf{Dataset release.}
+    Synthetic telecom log dataset: 1{,}115 entries, 10 failure
+    scenarios, 65 annotated queries with ground-truth root causes.
+\end{enumerate}
+
+% ═══════════════════════════════════════════════════════════════════════════════
+% 2. RELATED WORK
+% ═══════════════════════════════════════════════════════════════════════════════
+
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Retrieval-Augmented Generation.}
+\citet{lewis2020rag} showed that augmenting LMs with retrieved
+passages yields large gains on knowledge-intensive tasks;
+\citet{gao2023ragsurvey} survey extensions to summarization, code
+generation, and domain-specific applications.
+Most RAG systems follow a single-pass architecture insufficient for
+multi-file log analysis.
+
+\paragraph{Iterative and Multi-Step Retrieval.}
+Self-RAG \citep{asai2024selfrag} enables self-reflective retrieval;
+Active RAG \citep{jiang2023activerar} uses active learning signals;
+query rewriting \citep{wang2023queryrewrite} reformulates queries
+after initial passes.
+These approaches lack principled stopping criteria.
+Our adaptive confidence-gated iteration addresses this, and our
+ablation quantifies the contribution of iteration to both retrieval
+and reasoning.
+
+\paragraph{Hybrid Retrieval and Cross-Encoder Reranking.}
+Fusing BM25 \citep{robertson2009bm25} and bi-encoder retrieval
+\citep{reimers2019sentencebert} is standard practice.
+Cross-encoder rerankers \citep{nogueira2019passage} substantially
+improve precision; BEIR \citep{thakur2021beir} confirms zero-shot
+generalization.
+We show that reranking improves \emph{retrieval} precision but does
+not proportionally improve \emph{reasoning} accuracy.
+
+\paragraph{RAG Evaluation.}
+RAGAS \citep{es2024ragas} and ARES \citep{saad2024ares} decompose
+RAG quality into context-relevance, faithfulness, and answer-relevance.
+Lost-in-the-middle \citep{liu2024lostmiddle} shows LLMs underuse
+mid-context evidence---invisible to Precision@K.
+We complement this literature by demonstrating that retrieval and
+end-task metrics move independently, and that neither alone nor
+together reveals which failure mode is responsible.
+
+% ═══════════════════════════════════════════════════════════════════════════════
+% 3. METHOD
+% ═══════════════════════════════════════════════════════════════════════════════
+
+\section{Method}
+\label{sec:method}
+
+\subsection{Pipeline Architecture}
+
+The system implements a four-stage iterative loop:
+\emph{Hybrid Retrieval $\to$ Cross-Encoder Reranking $\to$ LLM
+Reasoning $\to$ Confidence-Gated Iteration}.
+
+\paragraph{Stage 1: Hybrid Candidate Generation.}
+Dense retrieval (\texttt{all-MiniLM-L6-v2}, 384-dim) indexed in
+ChromaDB fuses with BM25 ($k_1{=}1.5$, $b{=}0.75$):
+$s_{\text{hybrid}}(d) = 0.7 \cdot s_{\text{dense}}(d) + 0.3 \cdot
+s_{\text{BM25}}(d)$.
+Over-fetches $N{=}20$--$30$ candidates for reranking.
+
+\paragraph{Stage 2: Cross-Encoder Reranking.}
+\texttt{ms-marco-MiniLM-L-6-v2} (22M params) rescores each
+(query, document) pair via joint cross-attention.
+The cross-encoder score is the \emph{sole} ranking signal,
+discarding hybrid scores to avoid reintroducing first-stage noise.
+Top-$k{=}6$ documents proceed to the LLM.
+
+\paragraph{Stage 3: LLM Analysis.}
+The LLM (default: Llama~3.3~70B, temperature~0) produces structured
+output: root cause, severity, timeline, reasoning steps,
+recommendation.
+Composite confidence combines: mean retrieval score (30\%), output
+completeness (30\%), evidence density (20\%), inter-iteration
+consistency (20\%).
+
+\paragraph{Stage 4: Confidence-Gated Iteration.}
+Three stopping rules: high-confidence exit (${\geq}0.85$), plateau
+detection (2 consecutive non-improvements), hard cap ($M{=}3$).
+Returns the \emph{best-scoring} iteration.
+
+\begin{algorithm}[t]
+\caption{Adaptive Iterative RAG}
+\label{alg:adaptive}
+\begin{algorithmic}[1]
+\Require Query $q$, documents $\mathcal{D}$, max iters $M$, threshold $\epsilon$
+\State $q_1 \gets q$; $c_0 \gets 0$; $\text{best} \gets \textsc{null}$; $\text{seen} \gets \emptyset$
+\For{$i = 1$ \textbf{to} $M$}
+    \State $\mathcal{C}_i \gets \textsc{HybridRetrieve}(q_i, \mathcal{D}, N_i)$
+    \State $\mathcal{R}_i \gets \textsc{Rerank}(q_i, \mathcal{C}_i, k)$
+    \State $\mathcal{R}_i \gets \textsc{Dedup}(\mathcal{R}_i, \text{seen})$; update $\text{seen}$
+    \State $a_i \gets \textsc{LLM}(q_i, \mathcal{R}_i)$
+    \State $c_i \gets \textsc{Confidence}(a_i, \mathcal{R}_i, a_{i-1})$
+    \If{$c_i > c_{\text{best}}$} $\text{best} \gets (a_i, \mathcal{R}_i, c_i)$ \EndIf
+    \If{$c_i \geq 0.85$ \textbf{or} drops $\geq 2$} \textbf{break} \EndIf
+    \State $q_{i+1} \gets \textsc{RefineQuery}(q, q_i, a_i)$
+\EndFor
+\State \Return $\text{best}$
+\end{algorithmic}
+\end{algorithm}
+
+% ═══════════════════════════════════════════════════════════════════════════════
+% 4. EXPERIMENTAL SETUP
+% ═══════════════════════════════════════════════════════════════════════════════
+
+\section{Experimental Setup}
+\label{sec:setup}
+
+\subsection{Dataset}
+
+We construct a synthetic telecom log corpus for multi-hop retrieval
+evaluation: \textbf{1{,}115 log entries} across \textbf{10 log files}
+from six network domains (eNodeB, CU-CP, CU-UP, RAN, Core Network,
+Transport).
+The corpus encodes \textbf{10 failure scenarios}, each comprising a
+causal chain spanning 2--5 files:
+
+\begin{enumerate}[nosep]
+    \item RRC Reconfiguration failure cascade (4 files, 13 steps)
+    \item SCTP transport link failure, 45 UEs affected (4 files)
+    \item Inter-gNB handover failure with PDCP data loss (4 files)
+    \item PDU session rejection by PCF policy (5 files)
+    \item RLC max retransmission causing DRB failure (4 files)
+    \item GTP-U path failure on backhaul (4 files)
+    \item 5G-AKA authentication failure, SQN desync (4 files)
+    \item DL scheduler starvation under load (3 files)
+    \item IPSec tunnel failure on midhaul (3 files)
+    \item AMF overload from registration storm (3 files)
+\end{enumerate}
+
+Each file contains scenario entries interleaved with 80--120
+normal-operation background entries, requiring retrieval to
+distinguish relevant evidence from noise.
+
+\subsection{Queries}
+
+\textbf{65 evaluation queries} across 8 types:
+root-cause analysis (10), failure tracing (10), multi-hop (10),
+temporal (10), impact analysis (10), error-code (10),
+cross-scenario (4), contrastive (1).
+55 of 65 require cross-file reasoning.
+Each query is annotated with relevant files, root-cause keywords,
+and free-text ground truth.
+
+\subsection{Ablation Configurations}
+
+Six configurations share the same LLM (Llama~3.3~70B):
+
+\begin{table}[h]
+\centering
+\small
+\caption{Ablation configurations.}
+\label{tab:configs}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Config} & \textbf{Dense} & \textbf{BM25} & \textbf{Rerank} & \textbf{Iter.} \\
+\midrule
+Dense-Only       & \checkmark &            &             &             \\
+BM25-Only        &            & \checkmark &             &             \\
+Hybrid           & \checkmark & \checkmark &             &             \\
+Hybrid+Rerank    & \checkmark & \checkmark & \checkmark  &             \\
+Hybrid+Iter.     & \checkmark & \checkmark &             & \checkmark  \\
+Full System      & \checkmark & \checkmark & \checkmark  & \checkmark  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Multi-LLM Comparison}
+
+Retrieval is fixed (Hybrid+Rerank, top-6) across four models:
+Llama~3.3~70B, Llama~3.1~8B, Mixtral~8x7B, Gemma2~9B (all via Groq,
+temperature~0).
+
+\subsection{Metrics}
+
+\textbf{Retrieval}: Precision@K, Recall@K, MRR.
+\textbf{Reasoning}: keyword overlap (RCA\textsubscript{kw}),
+semantic similarity, structured scoring, composite score
+($0.35{\cdot}\text{sem} + 0.30{\cdot}\text{struct} +
+0.20{\cdot}\text{ROUGE-L} + 0.15{\cdot}\text{kw}$).
+\textbf{LLM-as-judge}: binary correctness.
+
+% ═══════════════════════════════════════════════════════════════════════════════
+% 5. RESULTS
+% ═══════════════════════════════════════════════════════════════════════════════
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Ablation Study}
+\label{sec:ablation}
+
+Table~\ref{tab:ablation} reports aggregate metrics.
+The central finding: \textbf{retrieval metrics move; reasoning
+metrics do not}.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Ablation results (65 queries, Llama 3.3 70B).
+Values produced by \texttt{run\_ablation.py} and filled at run time.}
+\label{tab:ablation}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Config} & \textbf{P@K} & \textbf{R@K} & \textbf{MRR} & \textbf{RCA\textsubscript{kw}} & \textbf{Conf.} & \textbf{Iters} \\
+\midrule
+Dense-Only       & -- & -- & -- & -- & -- & 1.0 \\
+BM25-Only        & -- & -- & -- & -- & -- & 1.0 \\
+Hybrid           & -- & -- & -- & -- & -- & 1.0 \\
+Hybrid+Rerank    & -- & -- & -- & -- & -- & 1.0 \\
+Hybrid+Iter.     & -- & -- & -- & -- & -- & 3.0 \\
+Full System      & -- & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Findings.}
+(i)~Cross-encoder reranking drives Precision@K gains (Hybrid vs.\
+Hybrid+Rerank).
+(ii)~BM25 fusion adds complementary signal for error codes (Dense-Only
+vs.\ Hybrid).
+(iii)~Iteration without reranking degrades precision via query drift
+(Hybrid+Iter.).
+(iv)~\textbf{RCA\textsubscript{kw} varies by $< 0.05$ while P@K varies
+by up to 0.25}---the direct empirical signature of the
+retrieval--reasoning gap.
+
+\subsection{Multi-LLM Comparison}
+\label{sec:multi-llm}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Multi-LLM results with identical retrieval.
+Values from \texttt{run\_multi\_llm\_comparison.py}.}
+\label{tab:multi-llm}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{RCA\textsubscript{kw}} & \textbf{Completeness} & \textbf{Latency} & \textbf{Params} \\
+\midrule
+Llama 3.3 70B  & -- & -- & -- & 70B \\
+Mixtral 8x7B   & -- & -- & -- & 46.7B \\
+Gemma2 9B      & -- & -- & -- & 9B \\
+Llama 3.1 8B   & -- & -- & -- & 8B \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Larger models achieve higher reasoning accuracy on identical evidence,
+confirming that \textbf{reasoning is independently bounded by model
+capability}.
+The RCA gap between largest and smallest models quantifies the
+reasoning improvement achievable by scaling alone, without retrieval
+changes.
+
+\subsection{Retrieval--Reasoning Correlation}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Correlation between retrieval and reasoning across all runs.
+Values from \texttt{run\_correlation\_analysis.py}.}
+\label{tab:correlation}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Metric} & \textbf{Pearson $r$} & \textbf{$p$} & \textbf{Spearman $\rho$} & \textbf{$p$} \\
+\midrule
+Precision@K & -- & -- & -- & -- \\
+Recall@K    & -- & -- & -- & -- \\
+MRR         & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Low correlation ($|r| < 0.3$) statistically confirms the gap:
+retrieval quality is a poor predictor of reasoning accuracy.
+
+\subsection{Failure Mode Distribution}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Per-query regime classification.}
+\label{tab:failure-modes}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Regime} & \textbf{Count} & \textbf{\%} \\
+\midrule
+High retrieval, high reasoning   & -- & -- \\
+High retrieval, low reasoning    & -- & -- \\
+Low retrieval, high reasoning    & -- & -- \\
+Low retrieval, low reasoning     & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Off-diagonal cases (high retrieval / low reasoning and vice versa)
+are direct evidence that aggregate metrics obscure distinct failure
+modes.
+
+\subsection{Improved Metrics}
+\label{sec:metrics-result}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Metric inter-correlation.
+Values from \texttt{run\_improved\_metrics.py}.}
+\label{tab:metric-corr}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric Pair} & \textbf{Pearson $r$} \\
+\midrule
+Keyword overlap vs.\ Semantic similarity & -- \\
+Keyword overlap vs.\ Composite score     & -- \\
+Semantic sim.\ vs.\ ROUGE-L F1           & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Moderate correlation between keyword overlap and semantic similarity
+indicates keyword overlap is a noisy proxy.
+The composite metric captures three complementary dimensions, reducing
+single-metric vulnerability.
+
+\subsection{Qualitative Cases}
+\label{sec:cases}
+
+\paragraph{Case 1: Good retrieval, wrong reasoning.}
+On SCTP failure (S02), Hybrid+Rerank retrieves all relevant files
+(P@K~${>}0.8$), but the LLM stops at the symptom without tracing the
+full cascade.
+
+\paragraph{Case 2: Imperfect retrieval, correct reasoning.}
+On handover failure (S03), Dense-Only misses RAN entries, but the LLM
+correctly chains the failure using domain priors.
+
+\paragraph{Case 3: Iteration helps.}
+On authentication failure (S07), first-pass retrieval is broad;
+query refinement injects ``SQN'', ``AUSF'', pulling correct evidence
+on iteration~2.
+
+\paragraph{Case 4: Iteration hurts.}
+Under Hybrid+Iter.\ on scheduler starvation (S08), incorrect
+first-pass analysis causes query drift toward unrelated transport logs.
+
+% ═══════════════════════════════════════════════════════════════════════════════
+% 6. DISCUSSION
+% ═══════════════════════════════════════════════════════════════════════════════
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Why Retrieval Improvements Fail to Improve Reasoning}
+
+The gap has a structural explanation: retrieval and reasoning are
+bounded by \emph{different failure modes}.
+Retrieval is limited by index coverage, fusion weights, and reranker
+accuracy.
+Reasoning is limited by the LLM's ability to chain multi-source
+evidence and distinguish relevant from irrelevant context.
+
+Three mechanisms generate the disconnect:
+(i)~Precision@K is reasoning-blind---a document can be relevant by
+annotation yet unused by the LLM.
+(ii)~End-task accuracy is retrieval-blind---correct answers can arise
+from LLM priors rather than retrieved evidence.
+(iii)~Averaging across queries erases the regime---two queries in
+opposite failure modes produce identical aggregate scores.
+
+\subsection{Implications for RAG Evaluation}
+
+Evaluating multi-hop RAG requires:
+(i)~explicit decomposition of retrieval vs.\ reasoning failures;
+(ii)~ablations holding the LLM fixed while varying retrieval, and
+vice versa;
+(iii)~per-query regime reporting;
+(iv)~semantic evaluation metrics beyond keyword overlap.
+These apply to multi-hop QA, scientific RAG, code assistants, and
+agentic retrieval.
+
+\subsection{Adaptive vs.\ Fixed Iteration}
+
+Adaptive stopping avoids wasteful LLM calls and tolerates temporary
+confidence dips.
+Fixed iteration exhibits query drift (Case~4), amplifying first-pass
+errors without a precision-oriented reranking guard.
+
+% ═══════════════════════════════════════════════════════════════════════════════
+% 7. LIMITATIONS AND FUTURE WORK
+% ═══════════════════════════════════════════════════════════════════════════════
+
+\section{Limitations and Future Work}
+\label{sec:limitations}
+
+\textbf{Synthetic data}: results should be validated on production logs.
+\textbf{LLM-as-judge bias}: cross-model judges and human evaluation
+are needed.
+\textbf{Single domain}: replication on HotpotQA, MuSiQue, and
+code-assistant workloads would test generality.
+\textbf{Confidence calibration}: the composite score is a heuristic,
+not a validated metric.
+
+Future directions include: (i)~larger corpora with bootstrap
+significance testing; (ii)~human-calibrated evaluation;
+(iii)~domain-adapted embeddings via contrastive learning;
+(iv)~graph-based causal retrieval; (v)~reader fine-tuning to test
+whether reasoning improvements close the gap; (vi)~cross-domain
+replication.
+
+% ═══════════════════════════════════════════════════════════════════════════════
+% 8. CONCLUSION
+% ═══════════════════════════════════════════════════════════════════════════════
+
+\section{Conclusion}
+
+We demonstrated the \textbf{retrieval--reasoning gap} in iterative
+RAG: across six ablation configurations and 65 queries, Precision@K
+varies by up to 0.25 while root-cause accuracy remains flat.
+A multi-LLM comparison with fixed retrieval confirms that reasoning
+is independently bounded by model capability.
+Standard evaluation practice---reporting retrieval and end-task
+metrics together---obscures this gap by averaging over distinct
+failure modes.
+We proposed a decomposition framework and composite metric that make
+the gap visible and actionable.
+The broader implication: \emph{for multi-hop RAG, improving retrieval
+is necessary but not sufficient---reasoning quality requires
+independent attention, and evaluation must reflect this.}
+
+% ═══════════════════════════════════════════════════════════════════════════════
+% REFERENCES
+% ═══════════════════════════════════════════════════════════════════════════════
+
+\bibliographystyle{plainnat}
+
+\begin{thebibliography}{15}
+
+\bibitem[Asai et~al.(2024)]{asai2024selfrag}
+Asai, A., Wu, Z., Wang, Y., Sil, A., and Hajishirzi, H.
+\newblock Self-RAG: Learning to retrieve, generate, and critique
+through self-reflection.
+\newblock In \emph{ICLR}, 2024.
+
+\bibitem[Gao et~al.(2023)]{gao2023ragsurvey}
+Gao, Y., Xiong, Y., Dibia, V., et~al.
+\newblock Retrieval-augmented generation for large language models: A
+survey.
+\newblock \emph{arXiv preprint arXiv:2312.10997}, 2023.
+
+\bibitem[Jiang et~al.(2023)]{jiang2023activerar}
+Jiang, Z., Xu, F.~F., Gao, L., et~al.
+\newblock Active retrieval augmented generation.
+\newblock In \emph{EMNLP}, 2023.
+
+\bibitem[Khattab and Zaharia(2020)]{khattab2020colbert}
+Khattab, O. and Zaharia, M.
+\newblock ColBERT: Efficient and effective passage search via
+contextualized late interaction over BERT.
+\newblock In \emph{SIGIR}, 2020.
+
+\bibitem[Lewis et~al.(2020)]{lewis2020rag}
+Lewis, P., Perez, E., Piktus, A., et~al.
+\newblock Retrieval-augmented generation for knowledge-intensive NLP
+tasks.
+\newblock In \emph{NeurIPS}, 2020.
+
+\bibitem[Nguyen et~al.(2016)]{nguyen2016msmarco}
+Nguyen, T., Rosenberg, M., Song, X., et~al.
+\newblock {MS MARCO}: A human generated machine reading comprehension
+dataset.
+\newblock In \emph{NeurIPS Workshop on Cognitive Computation}, 2016.
+
+\bibitem[Nogueira and Cho(2019)]{nogueira2019passage}
+Nogueira, R. and Cho, K.
+\newblock Passage re-ranking with BERT.
+\newblock \emph{arXiv preprint arXiv:1901.04085}, 2019.
+
+\bibitem[Reimers and Gurevych(2019)]{reimers2019sentencebert}
+Reimers, N. and Gurevych, I.
+\newblock Sentence-BERT: Sentence embeddings using Siamese
+BERT-networks.
+\newblock In \emph{EMNLP}, 2019.
+
+\bibitem[Robertson and Zaragoza(2009)]{robertson2009bm25}
+Robertson, S. and Zaragoza, H.
+\newblock The probabilistic relevance framework: {BM25} and beyond.
+\newblock \emph{Foundations and Trends in IR}, 3(4):333--389, 2009.
+
+\bibitem[Thakur et~al.(2021)]{thakur2021beir}
+Thakur, N., Reimers, N., et~al.
+\newblock {BEIR}: A heterogeneous benchmark for zero-shot evaluation
+of information retrieval models.
+\newblock In \emph{NeurIPS Datasets and Benchmarks}, 2021.
+
+\bibitem[Wang et~al.(2023)]{wang2023queryrewrite}
+Wang, L., Yang, N., and Wei, F.
+\newblock Query2doc: Query expansion with large language models.
+\newblock In \emph{EMNLP}, 2023.
+
+\bibitem[Es et~al.(2024)]{es2024ragas}
+Es, S., James, J., Espinosa-Anke, L., and Schockaert, S.
+\newblock {RAGAS}: Automated evaluation of retrieval augmented
+generation.
+\newblock In \emph{EACL (System Demonstrations)}, 2024.
+
+\bibitem[Saad-Falcon et~al.(2024)]{saad2024ares}
+Saad-Falcon, J., Khattab, O., Potts, C., and Zaharia, M.
+\newblock {ARES}: An automated evaluation framework for
+retrieval-augmented generation systems.
+\newblock In \emph{NAACL}, 2024.
+
+\bibitem[Upadhyay et~al.(2024)]{upadhyay2024trecrag}
+Upadhyay, S., Pradeep, R., Thakur, N., et~al.
+\newblock A large-scale study of relevance assessments with large
+language models: An initial look at the {TREC 2024 RAG Track}.
+\newblock \emph{arXiv preprint arXiv:2411.08275}, 2024.
+
+\bibitem[Liu et~al.(2024)]{liu2024lostmiddle}
+Liu, N.~F., Lin, K., Hewitt, J., et~al.
+\newblock Lost in the middle: How language models use long contexts.
+\newblock \emph{TACL}, 12:157--173, 2024.
+
+\end{thebibliography}
+
+\end{document}

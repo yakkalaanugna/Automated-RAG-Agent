@@ -1,0 +1,1076 @@
+[
+  {
+    "method": "Baseline",
+    "query": "Why did UE4 fail?",
+    "ground_truth": "RRC Reconfiguration failure code 4 in rfma_impl.cpp caused UE4 release",
+    "predicted_root_cause": "UE4 failed due to a failure while applying an RRCReconfiguration message.",
+    "supporting_logs": [
+      "[log3.txt] INFO log3.txt line 6 at 2026-04-15T18:34:15.200000 INF/cp_ue/ConcreteUeSaMethods.cpp 81 ASP-2834-2-cp_ue <2026-04-15T18:34:15.200000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:1] [ueIdCu:1] Trigger ue release",
+      "[log3.txt] INFO log3.txt line 3 at 2026-04-15T18:34:08.586830 INF/cp_ue/ConcreteUeSaMethods.cpp 7f ASP-2834-2-cp_ue <2026-04-15T18:34:08.586830Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:4] [ueIdCu:4] Trigger ue release",
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log3.txt] INFO log3.txt line 4 at 2026-04-15T18:34:09.100000 INF/cp_ue/ConcreteUeSaMethods.cpp 80 ASP-2834-2-cp_ue <2026-04-15T18:34:09.100000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:290 [ueIdCu:4] UE Context Release initiated by CU-CP",
+      "[log2.txt] ERROR log2.txt line 3 at 18:34:08'417\"426 rfma_impl.cpp[80] 4 ERROR!! 18:34:08'417\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log1.txt] INFO log1.txt line 10 at 18:34:12.460 UEC-1: UE4 18:34:12.460 18:34:12.460 INF: UEC-1: UE4: Ignoring Rrc Release in NAS-FIVEGS-SM-PDU-SESSION-ACTIVE-IDLE"
+    ],
+    "retrieval_scores": [
+      0.20522709956121676,
+      0.19763434480197917,
+      0.1530574775933411,
+      0.14248199036498754,
+      0.09888360439137833,
+      0.07086227215891039
+    ],
+    "confidence": 0.6434073394435906,
+    "confidence_trajectory": [
+      0.6434073394435906
+    ],
+    "iterations": 1,
+    "latency_s": 2.823899745941162,
+    "judge_verdict": "Correct",
+    "judge_reason": "The predicted root cause correctly identifies the same underlying mechanism as the ground truth, attributing the failure of UE4 to an issue with RRC Reconfiguration, despite minor wording differences."
+  },
+  {
+    "method": "Baseline",
+    "query": "Summarize the failure scenario in this session.",
+    "ground_truth": "UE4 RRC reconfiguration failure followed by CU-CP-initiated context release and packet loss",
+    "predicted_root_cause": "RRC Reconfiguration failure due to unknown reasons, causing UE4 session establishment to fail.",
+    "supporting_logs": [
+      "[log1.txt] INFO log1.txt line 3 at 18:34:07.300 UEC-1: UE4 18:34:07.300 18:34:07.300 INF: UEC-1: UE4: PDU Session Establishment Accept received",
+      "[log3.txt] WARNING log3.txt line 5 at 2026-04-15T18:34:10.720780 59 ASP-2733-Disp_1 <2026-04-15T18:34:10.720780Z> 152018F-RlcDlDrbQ1 INF/L2HiDu, g1r002nDEF9ucp2C000t000Dh04/Ln:114/STATS-DL-RLC Total In:379717891 B, Out InitTx:379717891 B, Out ReTx:100135 B, Out ProReTx:0 B, lostPktsF1:0, loQueueTimeF1:0, srDropTh:0, dropped:0",
+      "[log2.txt] FAIL log2.txt line 4 at 18:34:08'417\"479 d 18:34:08'417\"479|75bb06c0 Enter virtual void RrcFsm::OnRrcReconfigurationFailure()",
+      "[log3.txt] WARNING log3.txt line 7 at 2026-04-15T18:34:16.720780 98 ASP-2733-Disp_1 <2026-04-15T18:34:16.720780Z> 152018F-RlcDlDrbQ1 INF/L2HiDu, g1r002nDEF9ucp2C000t000Dh04/Ln:114/STATS-DL-RLC Total In:379717891 B, Out InitTx:379717891 B, Out ReTx:227445 B, Out ProReTx:0 B, lostPktsF1:0, loQueueTimeF1:0, srDropTh:0, dropped:0",
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log3.txt] INFO log3.txt line 1 at 2026-04-15T18:34:08.586828 DBG/cp_ue/CuUeReleaseSaEventHandler.cpp 7d ASP-2834-2-cp_ue <2026-04-15T18:34:08.586828Z> 62-cp_ue DBG/cp_ue/CuUeReleaseSaEventHandler.cpp:160 PCMD Record for CuUeReleaseSaEventHandler collect UeSetupSuccessEvent"
+    ],
+    "retrieval_scores": [
+      0.07060880101196587,
+      0.002705929082367553,
+      -0.003452905596832423,
+      -0.00502211706058997,
+      -0.05713534654515806,
+      -0.07773057265740047
+    ],
+    "confidence": 0.5964986894117177,
+    "confidence_trajectory": [
+      0.5964986894117177
+    ],
+    "iterations": 1,
+    "latency_s": 1.8322556018829346,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "The predicted root cause does not fully capture the ground truth mechanism, as it misses the CU-CP-initiated context release and packet loss that followed the RRC reconfiguration failure."
+  },
+  {
+    "method": "Baseline",
+    "query": "What is the root cause of the incident?",
+    "ground_truth": "Failure while applying RRCReconfiguration (code 4) in rfma_impl.cpp",
+    "predicted_root_cause": "UE context release was triggered due to inactivity.",
+    "supporting_logs": [
+      "[log3.txt] INFO log3.txt line 1 at 2026-04-15T18:34:08.586828 DBG/cp_ue/CuUeReleaseSaEventHandler.cpp 7d ASP-2834-2-cp_ue <2026-04-15T18:34:08.586828Z> 62-cp_ue DBG/cp_ue/CuUeReleaseSaEventHandler.cpp:160 PCMD Record for CuUeReleaseSaEventHandler collect UeSetupSuccessEvent",
+      "[log3.txt] INFO log3.txt line 2 at 2026-04-15T18:34:08.586829 DBG/cp_ue/CuUeReleaseSaEventHandler.cpp 7e ASP-2834-2-cp_ue <2026-04-15T18:34:08.586829Z> 62-cp_ue DBG/cp_ue/CuUeReleaseSaEventHandler.cpp:169 PCMD Record for CuUeReleaseSaEventHandler collect UeInactivityEvent",
+      "[log3.txt] INFO log3.txt line 4 at 2026-04-15T18:34:09.100000 INF/cp_ue/ConcreteUeSaMethods.cpp 80 ASP-2834-2-cp_ue <2026-04-15T18:34:09.100000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:290 [ueIdCu:4] UE Context Release initiated by CU-CP",
+      "[log3.txt] INFO log3.txt line 6 at 2026-04-15T18:34:15.200000 INF/cp_ue/ConcreteUeSaMethods.cpp 81 ASP-2834-2-cp_ue <2026-04-15T18:34:15.200000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:1] [ueIdCu:1] Trigger ue release",
+      "[log3.txt] INFO log3.txt line 3 at 2026-04-15T18:34:08.586830 INF/cp_ue/ConcreteUeSaMethods.cpp 7f ASP-2834-2-cp_ue <2026-04-15T18:34:08.586830Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:4] [ueIdCu:4] Trigger ue release",
+      "[log1.txt] INFO log1.txt line 9 at 18:34:12.450 11 18:34:12.450 18:34:12.450 INF: AMF-1: UE CONTEXT RELEASE COMPLETE: gNB=2, AMF_UE_NGAP_ID=11"
+    ],
+    "retrieval_scores": [
+      -0.04242744511400853,
+      -0.05638563840384636,
+      -0.09965831353216337,
+      -0.11004363418003571,
+      -0.11861326859405885,
+      -0.12573465299955044
+    ],
+    "confidence": 0.5723568523588168,
+    "confidence_trajectory": [
+      0.5723568523588168
+    ],
+    "iterations": 1,
+    "latency_s": 1.9455115795135498,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99005, Requested 1075. Please try again in 1m9.12s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Baseline",
+    "query": "What caused the RRC reconfiguration failure?",
+    "ground_truth": "Failure (code 4) while applying RRCReconfiguration message in rfma_impl.cpp for UE4",
+    "predicted_root_cause": "RRC reconfiguration failure due to an error in applying the RRCReconfiguration message.",
+    "supporting_logs": [
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log2.txt] FAIL log2.txt line 4 at 18:34:08'417\"479 d 18:34:08'417\"479|75bb06c0 Enter virtual void RrcFsm::OnRrcReconfigurationFailure()",
+      "[log2.txt] ERROR log2.txt line 3 at 18:34:08'417\"426 rfma_impl.cpp[80] 4 ERROR!! 18:34:08'417\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log1.txt] INFO log1.txt line 13 at 18:34:15.200 UEC-1: UE1 18:34:15.200 18:34:15.200 INF: UEC-1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB",
+      "[log1.txt] INFO log1.txt line 12 at 18:34:15.100 UEC-1: UE1 18:34:15.100 18:34:15.100 ACR: UEC-1: UE1: Received RRC Release while in FIVE-GS-MM-REGISTERED state",
+      "[log2.txt] ERROR log2.txt line 8 at 18:34:15'100\"426 rfma_impl.cpp[80] ERROR!! 18:34:15'100\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB"
+    ],
+    "retrieval_scores": [
+      0.3508378441111394,
+      0.30016338159418765,
+      0.29800896113885633,
+      0.28148777584422247,
+      0.27104901299243833,
+      0.2659833832699139
+    ],
+    "confidence": 0.688376517947538,
+    "confidence_trajectory": [
+      0.688376517947538
+    ],
+    "iterations": 1,
+    "latency_s": 2.543240785598755,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98998, Requested 1087. Please try again in 1m13.44s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Baseline",
+    "query": "Which source file and line reported the critical error?",
+    "ground_truth": "rfma_impl.cpp line 80 reported the RRCReconfiguration failure",
+    "predicted_root_cause": "RRC Reconfiguration failure due to error in rfma_impl.cpp.",
+    "supporting_logs": [
+      "[log2.txt] ERROR log2.txt line 8 at 18:34:15'100\"426 rfma_impl.cpp[80] ERROR!! 18:34:15'100\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB",
+      "[log2.txt] FAIL log2.txt line 4 at 18:34:08'417\"479 d 18:34:08'417\"479|75bb06c0 Enter virtual void RrcFsm::OnRrcReconfigurationFailure()",
+      "[log3.txt] WARNING log3.txt line 5 at 2026-04-15T18:34:10.720780 59 ASP-2733-Disp_1 <2026-04-15T18:34:10.720780Z> 152018F-RlcDlDrbQ1 INF/L2HiDu, g1r002nDEF9ucp2C000t000Dh04/Ln:114/STATS-DL-RLC Total In:379717891 B, Out InitTx:379717891 B, Out ReTx:100135 B, Out ProReTx:0 B, lostPktsF1:0, loQueueTimeF1:0, srDropTh:0, dropped:0",
+      "[log3.txt] WARNING log3.txt line 7 at 2026-04-15T18:34:16.720780 98 ASP-2733-Disp_1 <2026-04-15T18:34:16.720780Z> 152018F-RlcDlDrbQ1 INF/L2HiDu, g1r002nDEF9ucp2C000t000Dh04/Ln:114/STATS-DL-RLC Total In:379717891 B, Out InitTx:379717891 B, Out ReTx:227445 B, Out ProReTx:0 B, lostPktsF1:0, loQueueTimeF1:0, srDropTh:0, dropped:0",
+      "[log2.txt] ERROR log2.txt line 3 at 18:34:08'417\"426 rfma_impl.cpp[80] 4 ERROR!! 18:34:08'417\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log3.txt] ERROR log3.txt line 9 at 18:34:20'398\"956 PacketReceiver.cpp[752] ERROR!! 18:34:20'398\"956|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE1 BID1 TRF0]: long forward jump of pn (168114->168235 delta=121)"
+    ],
+    "retrieval_scores": [
+      0.2974827998820463,
+      0.29204876455668827,
+      0.2730772879301765,
+      0.26783421997542134,
+      0.253216681387479,
+      0.25062751618975776
+    ],
+    "confidence": 0.6817143634960784,
+    "confidence_trajectory": [
+      0.6817143634960784
+    ],
+    "iterations": 1,
+    "latency_s": 1.583420991897583,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98998, Requested 1077. Please try again in 1m4.8s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Baseline",
+    "query": "What error code was reported for the RRC failure?",
+    "ground_truth": "Error code 4 was reported while applying RRCReconfiguration",
+    "predicted_root_cause": "RRC Reconfiguration failure with error code 4.",
+    "supporting_logs": [
+      "[log2.txt] ERROR log2.txt line 8 at 18:34:15'100\"426 rfma_impl.cpp[80] ERROR!! 18:34:15'100\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB",
+      "[log1.txt] INFO log1.txt line 13 at 18:34:15.200 UEC-1: UE1 18:34:15.200 18:34:15.200 INF: UEC-1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB",
+      "[log1.txt] INFO log1.txt line 12 at 18:34:15.100 UEC-1: UE1 18:34:15.100 18:34:15.100 ACR: UEC-1: UE1: Received RRC Release while in FIVE-GS-MM-REGISTERED state",
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log2.txt] FAIL log2.txt line 4 at 18:34:08'417\"479 d 18:34:08'417\"479|75bb06c0 Enter virtual void RrcFsm::OnRrcReconfigurationFailure()",
+      "[log2.txt] ERROR log2.txt line 3 at 18:34:08'417\"426 rfma_impl.cpp[80] 4 ERROR!! 18:34:08'417\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message"
+    ],
+    "retrieval_scores": [
+      0.5134422401275031,
+      0.5029262221023985,
+      0.4770585938288372,
+      0.43021612277849597,
+      0.40806913399777944,
+      0.3836613039692416
+    ],
+    "confidence": 0.7357686808402127,
+    "confidence_trajectory": [
+      0.7357686808402127
+    ],
+    "iterations": 1,
+    "latency_s": 1.620072364807129,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98998, Requested 1073. Please try again in 1m1.344s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Baseline",
+    "query": "What caused the UE context release?",
+    "ground_truth": "UE Context Release triggered by CU-CP after RRC reconfiguration failure",
+    "predicted_root_cause": "The UE context release was initiated by the CU-CP.",
+    "supporting_logs": [
+      "[log1.txt] INFO log1.txt line 7 at 18:34:12.394 40960 18:34:12.394 18:34:12.394 INF: AMF-1: UE CONTEXT RELEASE REQUEST: gNB=2, RAN_UE_NGAP_ID=40960.",
+      "[log1.txt] INFO log1.txt line 8 at 18:34:12.395 AMF-1: GNB-2 18:34:12.395 18:34:12.395 INF: AMF-1: GNB-2: [NgLink::OnReceiveUeContextReleaseRequest]::Received UE CONTEXT RELEASE REQUEST from GNB-2 handled successfully",
+      "[log3.txt] INFO log3.txt line 4 at 2026-04-15T18:34:09.100000 INF/cp_ue/ConcreteUeSaMethods.cpp 80 ASP-2834-2-cp_ue <2026-04-15T18:34:09.100000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:290 [ueIdCu:4] UE Context Release initiated by CU-CP",
+      "[log1.txt] INFO log1.txt line 6 at 18:34:12.394 11 18:34:12.394 18:34:12.394 INF: AMF-1: UE CONTEXT RELEASE REQUEST: gNB=2, AMF_UE_NGAP_ID=11",
+      "[log3.txt] INFO log3.txt line 6 at 2026-04-15T18:34:15.200000 INF/cp_ue/ConcreteUeSaMethods.cpp 81 ASP-2834-2-cp_ue <2026-04-15T18:34:15.200000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:1] [ueIdCu:1] Trigger ue release",
+      "[log3.txt] INFO log3.txt line 3 at 2026-04-15T18:34:08.586830 INF/cp_ue/ConcreteUeSaMethods.cpp 7f ASP-2834-2-cp_ue <2026-04-15T18:34:08.586830Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:4] [ueIdCu:4] Trigger ue release"
+    ],
+    "retrieval_scores": [
+      0.4891131404119835,
+      0.48519963694035295,
+      0.4552301087823175,
+      0.4219966865287499,
+      0.41775418475764337,
+      0.386887687369599
+    ],
+    "confidence": 0.7328090722395323,
+    "confidence_trajectory": [
+      0.7328090722395323
+    ],
+    "iterations": 1,
+    "latency_s": 6.1600563526153564,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "The predicted root cause is missing the crucial detail that the UE context release was triggered after an RRC reconfiguration failure, which is a key part of the underlying mechanism in the ground truth."
+  },
+  {
+    "method": "Baseline",
+    "query": "What event led the CU-CP to trigger UE release?",
+    "ground_truth": "CU-CP triggered UE release after UE4 RRC reconfiguration failure (code 4)",
+    "predicted_root_cause": "The CU-CP triggered UE release due to an RRC Release message from the GNB.",
+    "supporting_logs": [
+      "[log3.txt] INFO log3.txt line 4 at 2026-04-15T18:34:09.100000 INF/cp_ue/ConcreteUeSaMethods.cpp 80 ASP-2834-2-cp_ue <2026-04-15T18:34:09.100000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:290 [ueIdCu:4] UE Context Release initiated by CU-CP",
+      "[log3.txt] INFO log3.txt line 6 at 2026-04-15T18:34:15.200000 INF/cp_ue/ConcreteUeSaMethods.cpp 81 ASP-2834-2-cp_ue <2026-04-15T18:34:15.200000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:1] [ueIdCu:1] Trigger ue release",
+      "[log3.txt] INFO log3.txt line 3 at 2026-04-15T18:34:08.586830 INF/cp_ue/ConcreteUeSaMethods.cpp 7f ASP-2834-2-cp_ue <2026-04-15T18:34:08.586830Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:4] [ueIdCu:4] Trigger ue release",
+      "[log1.txt] INFO log1.txt line 12 at 18:34:15.100 UEC-1: UE1 18:34:15.100 18:34:15.100 ACR: UEC-1: UE1: Received RRC Release while in FIVE-GS-MM-REGISTERED state",
+      "[log1.txt] INFO log1.txt line 13 at 18:34:15.200 UEC-1: UE1 18:34:15.200 18:34:15.200 INF: UEC-1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB",
+      "[log1.txt] INFO log1.txt line 10 at 18:34:12.460 UEC-1: UE4 18:34:12.460 18:34:12.460 INF: UEC-1: UE4: Ignoring Rrc Release in NAS-FIVEGS-SM-PDU-SESSION-ACTIVE-IDLE"
+    ],
+    "retrieval_scores": [
+      0.4609255810089887,
+      0.32111845749901613,
+      0.277737212088935,
+      0.2736112042071126,
+      0.2575335301993589,
+      0.22013132101273014
+    ],
+    "confidence": 0.6905528653008071,
+    "confidence_trajectory": [
+      0.6905528653008071
+    ],
+    "iterations": 1,
+    "latency_s": 5.888211488723755,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99209, Requested 999. Please try again in 2m59.712s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Baseline",
+    "query": "Why were packets lost for UE4?",
+    "ground_truth": "Packet loss due to long forward jump after UE4 RRC failure and release",
+    "predicted_root_cause": "Packets were lost for UE4 due to a long forward jump in the packet sequence.",
+    "supporting_logs": [
+      "[log3.txt] ERROR log3.txt line 10 at 18:34:20'400\"014 PacketReceiver.cpp[777] ERROR!! 18:34:20'400\"014|351ba6c0 PacketReceiver.cpp[777]:TRF:Rx[UE4 BID1 TRF0]: 11 packets lost due to long forward jump",
+      "[log1.txt] INFO log1.txt line 10 at 18:34:12.460 UEC-1: UE4 18:34:12.460 18:34:12.460 INF: UEC-1: UE4: Ignoring Rrc Release in NAS-FIVEGS-SM-PDU-SESSION-ACTIVE-IDLE",
+      "[log3.txt] INFO log3.txt line 6 at 2026-04-15T18:34:15.200000 INF/cp_ue/ConcreteUeSaMethods.cpp 81 ASP-2834-2-cp_ue <2026-04-15T18:34:15.200000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:1] [ueIdCu:1] Trigger ue release",
+      "[log3.txt] INFO log3.txt line 3 at 2026-04-15T18:34:08.586830 INF/cp_ue/ConcreteUeSaMethods.cpp 7f ASP-2834-2-cp_ue <2026-04-15T18:34:08.586830Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:4] [ueIdCu:4] Trigger ue release",
+      "[log3.txt] ERROR log3.txt line 8 at 18:34:20'396\"958 PacketReceiver.cpp[752] ERROR!! 18:34:20'396\"958|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE4 BID1 TRF0]: long forward jump of pn (167942->168064 delta=122)",
+      "[log3.txt] INFO log3.txt line 4 at 2026-04-15T18:34:09.100000 INF/cp_ue/ConcreteUeSaMethods.cpp 80 ASP-2834-2-cp_ue <2026-04-15T18:34:09.100000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:290 [ueIdCu:4] UE Context Release initiated by CU-CP"
+    ],
+    "retrieval_scores": [
+      0.2494742941208027,
+      0.14780530591930752,
+      0.1347467792577831,
+      0.1327816402991142,
+      0.12948794838168487,
+      0.11591952914687575
+    ],
+    "confidence": 0.6455107748562784,
+    "confidence_trajectory": [
+      0.6455107748562784
+    ],
+    "iterations": 1,
+    "latency_s": 10.376827478408813,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99209, Requested 1043. Please try again in 3m37.728s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Baseline",
+    "query": "What chain of events led to packet loss after registration?",
+    "ground_truth": "Registration -> PDU session establishment -> RRC reconfiguration failure (code 4) -> CU-CP UE release -> long forward jump / packet loss",
+    "predicted_root_cause": "Packet loss occurred due to a long forward jump in the packet sequence after a UE received an RRC Release while in the FIVE-GS-MM-REGISTERED state.",
+    "supporting_logs": [
+      "[log3.txt] ERROR log3.txt line 10 at 18:34:20'400\"014 PacketReceiver.cpp[777] ERROR!! 18:34:20'400\"014|351ba6c0 PacketReceiver.cpp[777]:TRF:Rx[UE4 BID1 TRF0]: 11 packets lost due to long forward jump",
+      "[log1.txt] INFO log1.txt line 12 at 18:34:15.100 UEC-1: UE1 18:34:15.100 18:34:15.100 ACR: UEC-1: UE1: Received RRC Release while in FIVE-GS-MM-REGISTERED state",
+      "[log3.txt] ERROR log3.txt line 8 at 18:34:20'396\"958 PacketReceiver.cpp[752] ERROR!! 18:34:20'396\"958|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE4 BID1 TRF0]: long forward jump of pn (167942->168064 delta=122)",
+      "[log3.txt] INFO log3.txt line 1 at 2026-04-15T18:34:08.586828 DBG/cp_ue/CuUeReleaseSaEventHandler.cpp 7d ASP-2834-2-cp_ue <2026-04-15T18:34:08.586828Z> 62-cp_ue DBG/cp_ue/CuUeReleaseSaEventHandler.cpp:160 PCMD Record for CuUeReleaseSaEventHandler collect UeSetupSuccessEvent",
+      "[log3.txt] INFO log3.txt line 2 at 2026-04-15T18:34:08.586829 DBG/cp_ue/CuUeReleaseSaEventHandler.cpp 7e ASP-2834-2-cp_ue <2026-04-15T18:34:08.586829Z> 62-cp_ue DBG/cp_ue/CuUeReleaseSaEventHandler.cpp:169 PCMD Record for CuUeReleaseSaEventHandler collect UeInactivityEvent",
+      "[log3.txt] ERROR log3.txt line 9 at 18:34:20'398\"956 PacketReceiver.cpp[752] ERROR!! 18:34:20'398\"956|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE1 BID1 TRF0]: long forward jump of pn (168114->168235 delta=121)"
+    ],
+    "retrieval_scores": [
+      0.06575407411939005,
+      -0.0016299701050392912,
+      -0.029273497987455377,
+      -0.04113808872436309,
+      -0.04564906592048423,
+      -0.046032180773448284
+    ],
+    "confidence": 0.59510156353043,
+    "confidence_trajectory": [
+      0.59510156353043
+    ],
+    "iterations": 1,
+    "latency_s": 7.835414886474609,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99209, Requested 1113. Please try again in 4m38.208s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Baseline",
+    "query": "What happened around 18:34:08?",
+    "ground_truth": "At 18:34:08 UE4 RRC reconfiguration failed (code 4) and CU-CP began triggering UE release",
+    "predicted_root_cause": "No relevant log entries around 18:34:08.",
+    "supporting_logs": [
+      "[log1.txt] INFO log1.txt line 9 at 18:34:12.450 11 18:34:12.450 18:34:12.450 INF: AMF-1: UE CONTEXT RELEASE COMPLETE: gNB=2, AMF_UE_NGAP_ID=11",
+      "[log1.txt] INFO log1.txt line 14 at 18:34:15.300 1 18:34:15.300 18:34:15.300 INF: AMF-1: UE CONTEXT RELEASE COMPLETE: gNB=2, AMF_UE_NGAP_ID=1",
+      "[log1.txt] INFO log1.txt line 6 at 18:34:12.394 11 18:34:12.394 18:34:12.394 INF: AMF-1: UE CONTEXT RELEASE REQUEST: gNB=2, AMF_UE_NGAP_ID=11",
+      "[log1.txt] INFO log1.txt line 7 at 18:34:12.394 40960 18:34:12.394 18:34:12.394 INF: AMF-1: UE CONTEXT RELEASE REQUEST: gNB=2, RAN_UE_NGAP_ID=40960.",
+      "[log1.txt] INFO log1.txt line 10 at 18:34:12.460 UEC-1: UE4 18:34:12.460 18:34:12.460 INF: UEC-1: UE4: Ignoring Rrc Release in NAS-FIVEGS-SM-PDU-SESSION-ACTIVE-IDLE",
+      "[log2.txt] INFO log2.txt line 7 at 18:34:15'100\"200 NrRrcMsgHandler.cpp[457] d 18:34:15'100\"200|75bb06c0 NrRrcMsgHandler.cpp[457]:nr_rrc::c1_rrcRelease_chosen"
+    ],
+    "retrieval_scores": [
+      -0.08308701563465015,
+      -0.09624981359939033,
+      -0.12140279990960079,
+      -0.14812803225666182,
+      -0.1898873826423466,
+      -0.19922973737696847
+    ],
+    "confidence": 0.5581007609290191,
+    "confidence_trajectory": [
+      0.5581007609290191
+    ],
+    "iterations": 1,
+    "latency_s": 7.24056339263916,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99209, Requested 1050. Please try again in 3m43.775999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Baseline",
+    "query": "Did UE1 experience the same failure as UE4?",
+    "ground_truth": "No. UE1 received a normal RRC Release while registered; UE4 suffered an RRCReconfiguration failure (code 4).",
+    "predicted_root_cause": "UE4 experienced a failure while applying an RRCReconfiguration message, but there is no evidence of UE1 experiencing the same failure.",
+    "supporting_logs": [
+      "[log3.txt] INFO log3.txt line 6 at 2026-04-15T18:34:15.200000 INF/cp_ue/ConcreteUeSaMethods.cpp 81 ASP-2834-2-cp_ue <2026-04-15T18:34:15.200000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:1] [ueIdCu:1] Trigger ue release",
+      "[log3.txt] INFO log3.txt line 3 at 2026-04-15T18:34:08.586830 INF/cp_ue/ConcreteUeSaMethods.cpp 7f ASP-2834-2-cp_ue <2026-04-15T18:34:08.586830Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:4] [ueIdCu:4] Trigger ue release",
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log3.txt] INFO log3.txt line 4 at 2026-04-15T18:34:09.100000 INF/cp_ue/ConcreteUeSaMethods.cpp 80 ASP-2834-2-cp_ue <2026-04-15T18:34:09.100000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:290 [ueIdCu:4] UE Context Release initiated by CU-CP",
+      "[log1.txt] INFO log1.txt line 3 at 18:34:07.300 UEC-1: UE4 18:34:07.300 18:34:07.300 INF: UEC-1: UE4: PDU Session Establishment Accept received",
+      "[log1.txt] INFO log1.txt line 7 at 18:34:12.394 40960 18:34:12.394 18:34:12.394 INF: AMF-1: UE CONTEXT RELEASE REQUEST: gNB=2, RAN_UE_NGAP_ID=40960."
+    ],
+    "retrieval_scores": [
+      0.19300973970227286,
+      0.17997178070282183,
+      0.16881559419568515,
+      0.11957745412913623,
+      0.11702874990598544,
+      0.11161110970469812
+    ],
+    "confidence": 0.64450072141703,
+    "confidence_trajectory": [
+      0.64450072141703
+    ],
+    "iterations": 1,
+    "latency_s": 5.234657287597656,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99209, Requested 1066. Please try again in 3m57.6s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Dense+Rerank",
+    "query": "Why did UE4 fail?",
+    "ground_truth": "RRC Reconfiguration failure code 4 in rfma_impl.cpp caused UE4 release",
+    "predicted_root_cause": "UE4 failed due to a failure while applying an RRCReconfiguration message.",
+    "supporting_logs": [
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log2.txt] ERROR log2.txt line 3 at 18:34:08'417\"426 rfma_impl.cpp[80] 4 ERROR!! 18:34:08'417\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log3.txt] ERROR log3.txt line 10 at 18:34:20'400\"014 PacketReceiver.cpp[777] ERROR!! 18:34:20'400\"014|351ba6c0 PacketReceiver.cpp[777]:TRF:Rx[UE4 BID1 TRF0]: 11 packets lost due to long forward jump",
+      "[log1.txt] ERROR log1.txt line 5 at 18:34:09.500 UEC-1: UE4 18:34:09.500 18:34:09.500 INF: UEC-1: UE4: Cancel All Active Fsm before CTRL_DEL_UE : UE4",
+      "[log2.txt] ERROR log2.txt line 5 at 18:34:09'500\"100 rfma_impl.cpp[92] d 18:34:09'500\"100|75bb06c0 rfma_impl.cpp[92]:UEC-1: UE4: Cancel All Active Fsm before CTRL_DEL_UE : UE4",
+      "[log1.txt] INFO log1.txt line 10 at 18:34:12.460 UEC-1: UE4 18:34:12.460 18:34:12.460 INF: UEC-1: UE4: Ignoring Rrc Release in NAS-FIVEGS-SM-PDU-SESSION-ACTIVE-IDLE"
+    ],
+    "retrieval_scores": [
+      0.9205625653266907,
+      0.7502527832984924,
+      0.07947432994842529,
+      0.03694163262844086,
+      0.019994845613837242,
+      0.011173851788043976
+    ],
+    "confidence": 0.6909200004301964,
+    "confidence_trajectory": [
+      0.6909200004301964
+    ],
+    "iterations": 1,
+    "latency_s": 6.902695894241333,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99209, Requested 1078. Please try again in 4m7.968s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Dense+Rerank",
+    "query": "Summarize the failure scenario in this session.",
+    "ground_truth": "UE4 RRC reconfiguration failure followed by CU-CP-initiated context release and packet loss",
+    "predicted_root_cause": "RRC reconfiguration failure due to packet loss and UE context release.",
+    "supporting_logs": [
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log2.txt] FAIL log2.txt line 4 at 18:34:08'417\"479 d 18:34:08'417\"479|75bb06c0 Enter virtual void RrcFsm::OnRrcReconfigurationFailure()",
+      "[log1.txt] INFO log1.txt line 10 at 18:34:12.460 UEC-1: UE4 18:34:12.460 18:34:12.460 INF: UEC-1: UE4: Ignoring Rrc Release in NAS-FIVEGS-SM-PDU-SESSION-ACTIVE-IDLE",
+      "[log1.txt] INFO log1.txt line 3 at 18:34:07.300 UEC-1: UE4 18:34:07.300 18:34:07.300 INF: UEC-1: UE4: PDU Session Establishment Accept received",
+      "[log3.txt] ERROR log3.txt line 10 at 18:34:20'400\"014 PacketReceiver.cpp[777] ERROR!! 18:34:20'400\"014|351ba6c0 PacketReceiver.cpp[777]:TRF:Rx[UE4 BID1 TRF0]: 11 packets lost due to long forward jump",
+      "[log1.txt] INFO log1.txt line 14 at 18:34:15.300 1 18:34:15.300 18:34:15.300 INF: AMF-1: UE CONTEXT RELEASE COMPLETE: gNB=2, AMF_UE_NGAP_ID=1"
+    ],
+    "retrieval_scores": [
+      0.001358038280159235,
+      0.0005240096361376345,
+      2.2187748982105404e-05,
+      2.117337498930283e-05,
+      1.4171483599056955e-05,
+      1.412081292073708e-05
+    ],
+    "confidence": 0.6000976850668394,
+    "confidence_trajectory": [
+      0.6000976850668394
+    ],
+    "iterations": 1,
+    "latency_s": 10.969578266143799,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99208, Requested 995. Please try again in 2m55.392s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Dense+Rerank",
+    "query": "What is the root cause of the incident?",
+    "ground_truth": "Failure while applying RRCReconfiguration (code 4) in rfma_impl.cpp",
+    "predicted_root_cause": "Failure to apply RRCReconfiguration message due to packet loss.",
+    "supporting_logs": [
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log3.txt] INFO log3.txt line 2 at 2026-04-15T18:34:08.586829 DBG/cp_ue/CuUeReleaseSaEventHandler.cpp 7e ASP-2834-2-cp_ue <2026-04-15T18:34:08.586829Z> 62-cp_ue DBG/cp_ue/CuUeReleaseSaEventHandler.cpp:169 PCMD Record for CuUeReleaseSaEventHandler collect UeInactivityEvent",
+      "[log3.txt] INFO log3.txt line 1 at 2026-04-15T18:34:08.586828 DBG/cp_ue/CuUeReleaseSaEventHandler.cpp 7d ASP-2834-2-cp_ue <2026-04-15T18:34:08.586828Z> 62-cp_ue DBG/cp_ue/CuUeReleaseSaEventHandler.cpp:160 PCMD Record for CuUeReleaseSaEventHandler collect UeSetupSuccessEvent",
+      "[log2.txt] INFO log2.txt line 7 at 18:34:15'100\"200 NrRrcMsgHandler.cpp[457] d 18:34:15'100\"200|75bb06c0 NrRrcMsgHandler.cpp[457]:nr_rrc::c1_rrcRelease_chosen",
+      "[log3.txt] ERROR log3.txt line 10 at 18:34:20'400\"014 PacketReceiver.cpp[777] ERROR!! 18:34:20'400\"014|351ba6c0 PacketReceiver.cpp[777]:TRF:Rx[UE4 BID1 TRF0]: 11 packets lost due to long forward jump",
+      "[log3.txt] INFO log3.txt line 3 at 2026-04-15T18:34:08.586830 INF/cp_ue/ConcreteUeSaMethods.cpp 7f ASP-2834-2-cp_ue <2026-04-15T18:34:08.586830Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:4] [ueIdCu:4] Trigger ue release"
+    ],
+    "retrieval_scores": [
+      1.2616399544640444e-05,
+      1.2445323591236956e-05,
+      1.2334608982200734e-05,
+      1.2300894923100714e-05,
+      1.227387383551104e-05,
+      1.2201935533084907e-05
+    ],
+    "confidence": 0.6000037086518205,
+    "confidence_trajectory": [
+      0.6000037086518205
+    ],
+    "iterations": 1,
+    "latency_s": 6.021050453186035,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99208, Requested 992. Please try again in 2m52.8s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Dense+Rerank",
+    "query": "What caused the RRC reconfiguration failure?",
+    "ground_truth": "Failure (code 4) while applying RRCReconfiguration message in rfma_impl.cpp for UE4",
+    "predicted_root_cause": "RRC reconfiguration failure due to error code 4 while applying RRCReconfiguration message.",
+    "supporting_logs": [
+      "[log2.txt] FAIL log2.txt line 4 at 18:34:08'417\"479 d 18:34:08'417\"479|75bb06c0 Enter virtual void RrcFsm::OnRrcReconfigurationFailure()",
+      "[log2.txt] ERROR log2.txt line 3 at 18:34:08'417\"426 rfma_impl.cpp[80] 4 ERROR!! 18:34:08'417\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log1.txt] INFO log1.txt line 12 at 18:34:15.100 UEC-1: UE1 18:34:15.100 18:34:15.100 ACR: UEC-1: UE1: Received RRC Release while in FIVE-GS-MM-REGISTERED state",
+      "[log1.txt] INFO log1.txt line 13 at 18:34:15.200 UEC-1: UE1 18:34:15.200 18:34:15.200 INF: UEC-1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB",
+      "[log2.txt] ERROR log2.txt line 8 at 18:34:15'100\"426 rfma_impl.cpp[80] ERROR!! 18:34:15'100\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB"
+    ],
+    "retrieval_scores": [
+      0.08394883573055267,
+      0.030826210975646973,
+      0.029127126559615135,
+      0.00022058784088585526,
+      0.00014908763114362955,
+      0.00013066099199932069
+    ],
+    "confidence": 0.6072201254864922,
+    "confidence_trajectory": [
+      0.6072201254864922
+    ],
+    "iterations": 1,
+    "latency_s": 6.6653151512146,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99207, Requested 1051. Please try again in 3m42.911999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Dense+Rerank",
+    "query": "Which source file and line reported the critical error?",
+    "ground_truth": "rfma_impl.cpp line 80 reported the RRCReconfiguration failure",
+    "predicted_root_cause": "The critical error was reported by rfma_impl.cpp at line 80.",
+    "supporting_logs": [
+      "[log2.txt] ERROR log2.txt line 3 at 18:34:08'417\"426 rfma_impl.cpp[80] 4 ERROR!! 18:34:08'417\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log3.txt] ERROR log3.txt line 10 at 18:34:20'400\"014 PacketReceiver.cpp[777] ERROR!! 18:34:20'400\"014|351ba6c0 PacketReceiver.cpp[777]:TRF:Rx[UE4 BID1 TRF0]: 11 packets lost due to long forward jump",
+      "[log2.txt] ERROR log2.txt line 5 at 18:34:09'500\"100 rfma_impl.cpp[92] d 18:34:09'500\"100|75bb06c0 rfma_impl.cpp[92]:UEC-1: UE4: Cancel All Active Fsm before CTRL_DEL_UE : UE4",
+      "[log2.txt] ERROR log2.txt line 8 at 18:34:15'100\"426 rfma_impl.cpp[80] ERROR!! 18:34:15'100\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB",
+      "[log3.txt] ERROR log3.txt line 9 at 18:34:20'398\"956 PacketReceiver.cpp[752] ERROR!! 18:34:20'398\"956|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE1 BID1 TRF0]: long forward jump of pn (168114->168235 delta=121)",
+      "[log3.txt] ERROR log3.txt line 8 at 18:34:20'396\"958 PacketReceiver.cpp[752] ERROR!! 18:34:20'396\"958|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE4 BID1 TRF0]: long forward jump of pn (167942->168064 delta=122)"
+    ],
+    "retrieval_scores": [
+      0.0018008470069617033,
+      0.0006085638888180256,
+      0.0005997535772621632,
+      0.0005867595318704844,
+      0.00046367020695470273,
+      0.00038761799805797637
+    ],
+    "confidence": 0.6002223606104963,
+    "confidence_trajectory": [
+      0.6002223606104963
+    ],
+    "iterations": 1,
+    "latency_s": 7.161246061325073,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99206, Requested 1041. Please try again in 3m33.408s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Dense+Rerank",
+    "query": "What error code was reported for the RRC failure?",
+    "ground_truth": "Error code 4 was reported while applying RRCReconfiguration",
+    "predicted_root_cause": "RRC Reconfiguration failure with error code 4.",
+    "supporting_logs": [
+      "[log2.txt] ERROR log2.txt line 3 at 18:34:08'417\"426 rfma_impl.cpp[80] 4 ERROR!! 18:34:08'417\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log2.txt] ERROR log2.txt line 8 at 18:34:15'100\"426 rfma_impl.cpp[80] ERROR!! 18:34:15'100\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB",
+      "[log2.txt] FAIL log2.txt line 4 at 18:34:08'417\"479 d 18:34:08'417\"479|75bb06c0 Enter virtual void RrcFsm::OnRrcReconfigurationFailure()",
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log2.txt] INFO log2.txt line 9 at 18:34:15'100\"479 d 18:34:15'100\"479|75bb06c0 Enter virtual void RrcFsm::OnRrcRelease()",
+      "[log1.txt] INFO log1.txt line 12 at 18:34:15.100 UEC-1: UE1 18:34:15.100 18:34:15.100 ACR: UEC-1: UE1: Received RRC Release while in FIVE-GS-MM-REGISTERED state"
+    ],
+    "retrieval_scores": [
+      0.9820630550384521,
+      0.9552915692329407,
+      0.853553295135498,
+      0.7369958758354187,
+      0.05867348238825798,
+      0.04294033348560333
+    ],
+    "confidence": 0.7814758805558085,
+    "confidence_trajectory": [
+      0.7814758805558085
+    ],
+    "iterations": 1,
+    "latency_s": 6.595608711242676,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99206, Requested 1073. Please try again in 4m1.055999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Dense+Rerank",
+    "query": "What caused the UE context release?",
+    "ground_truth": "UE Context Release triggered by CU-CP after RRC reconfiguration failure",
+    "predicted_root_cause": "The UE context release was initiated by the CU-CP.",
+    "supporting_logs": [
+      "[log3.txt] INFO log3.txt line 4 at 2026-04-15T18:34:09.100000 INF/cp_ue/ConcreteUeSaMethods.cpp 80 ASP-2834-2-cp_ue <2026-04-15T18:34:09.100000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:290 [ueIdCu:4] UE Context Release initiated by CU-CP",
+      "[log1.txt] INFO log1.txt line 8 at 18:34:12.395 AMF-1: GNB-2 18:34:12.395 18:34:12.395 INF: AMF-1: GNB-2: [NgLink::OnReceiveUeContextReleaseRequest]::Received UE CONTEXT RELEASE REQUEST from GNB-2 handled successfully",
+      "[log1.txt] INFO log1.txt line 7 at 18:34:12.394 40960 18:34:12.394 18:34:12.394 INF: AMF-1: UE CONTEXT RELEASE REQUEST: gNB=2, RAN_UE_NGAP_ID=40960.",
+      "[log1.txt] INFO log1.txt line 9 at 18:34:12.450 11 18:34:12.450 18:34:12.450 INF: AMF-1: UE CONTEXT RELEASE COMPLETE: gNB=2, AMF_UE_NGAP_ID=11",
+      "[log1.txt] INFO log1.txt line 14 at 18:34:15.300 1 18:34:15.300 18:34:15.300 INF: AMF-1: UE CONTEXT RELEASE COMPLETE: gNB=2, AMF_UE_NGAP_ID=1",
+      "[log1.txt] INFO log1.txt line 6 at 18:34:12.394 11 18:34:12.394 18:34:12.394 INF: AMF-1: UE CONTEXT RELEASE REQUEST: gNB=2, AMF_UE_NGAP_ID=11"
+    ],
+    "retrieval_scores": [
+      0.8569625020027161,
+      0.5817136764526367,
+      0.5369444489479065,
+      0.460009902715683,
+      0.4552285671234131,
+      0.4400755763053894
+    ],
+    "confidence": 0.7665467336773871,
+    "confidence_trajectory": [
+      0.7665467336773871
+    ],
+    "iterations": 1,
+    "latency_s": 7.983972549438477,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99206, Requested 1033. Please try again in 3m26.496s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Dense+Rerank",
+    "query": "What event led the CU-CP to trigger UE release?",
+    "ground_truth": "CU-CP triggered UE release after UE4 RRC reconfiguration failure (code 4)",
+    "predicted_root_cause": "UE inactivity triggered the CU-CP to initiate UE context release.",
+    "supporting_logs": [
+      "[log3.txt] INFO log3.txt line 4 at 2026-04-15T18:34:09.100000 INF/cp_ue/ConcreteUeSaMethods.cpp 80 ASP-2834-2-cp_ue <2026-04-15T18:34:09.100000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:290 [ueIdCu:4] UE Context Release initiated by CU-CP",
+      "[log3.txt] INFO log3.txt line 3 at 2026-04-15T18:34:08.586830 INF/cp_ue/ConcreteUeSaMethods.cpp 7f ASP-2834-2-cp_ue <2026-04-15T18:34:08.586830Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:4] [ueIdCu:4] Trigger ue release",
+      "[log3.txt] INFO log3.txt line 6 at 2026-04-15T18:34:15.200000 INF/cp_ue/ConcreteUeSaMethods.cpp 81 ASP-2834-2-cp_ue <2026-04-15T18:34:15.200000Z> 62-cp_ue INF/cp_ue/ConcreteUeSaMethods.cpp:271 [ueIdCu:1] [ueIdCu:1] Trigger ue release",
+      "[log3.txt] INFO log3.txt line 1 at 2026-04-15T18:34:08.586828 DBG/cp_ue/CuUeReleaseSaEventHandler.cpp 7d ASP-2834-2-cp_ue <2026-04-15T18:34:08.586828Z> 62-cp_ue DBG/cp_ue/CuUeReleaseSaEventHandler.cpp:160 PCMD Record for CuUeReleaseSaEventHandler collect UeSetupSuccessEvent",
+      "[log3.txt] INFO log3.txt line 2 at 2026-04-15T18:34:08.586829 DBG/cp_ue/CuUeReleaseSaEventHandler.cpp 7e ASP-2834-2-cp_ue <2026-04-15T18:34:08.586829Z> 62-cp_ue DBG/cp_ue/CuUeReleaseSaEventHandler.cpp:169 PCMD Record for CuUeReleaseSaEventHandler collect UeInactivityEvent",
+      "[log2.txt] ERROR log2.txt line 8 at 18:34:15'100\"426 rfma_impl.cpp[80] ERROR!! 18:34:15'100\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB"
+    ],
+    "retrieval_scores": [
+      0.6629025936126709,
+      0.602714478969574,
+      0.5953866839408875,
+      0.02983015775680542,
+      0.023653700947761536,
+      0.007622628007084131
+    ],
+    "confidence": 0.6961055121617391,
+    "confidence_trajectory": [
+      0.6961055121617391
+    ],
+    "iterations": 1,
+    "latency_s": 6.948583126068115,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99206, Requested 1080. Please try again in 4m7.104s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Dense+Rerank",
+    "query": "Why were packets lost for UE4?",
+    "ground_truth": "Packet loss due to long forward jump after UE4 RRC failure and release",
+    "predicted_root_cause": "Packets were lost for UE4 due to a long forward jump in the packet sequence.",
+    "supporting_logs": [
+      "[log3.txt] ERROR log3.txt line 10 at 18:34:20'400\"014 PacketReceiver.cpp[777] ERROR!! 18:34:20'400\"014|351ba6c0 PacketReceiver.cpp[777]:TRF:Rx[UE4 BID1 TRF0]: 11 packets lost due to long forward jump",
+      "[log3.txt] ERROR log3.txt line 8 at 18:34:20'396\"958 PacketReceiver.cpp[752] ERROR!! 18:34:20'396\"958|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE4 BID1 TRF0]: long forward jump of pn (167942->168064 delta=122)",
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log2.txt] ERROR log2.txt line 3 at 18:34:08'417\"426 rfma_impl.cpp[80] 4 ERROR!! 18:34:08'417\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log1.txt] INFO log1.txt line 10 at 18:34:12.460 UEC-1: UE4 18:34:12.460 18:34:12.460 INF: UEC-1: UE4: Ignoring Rrc Release in NAS-FIVEGS-SM-PDU-SESSION-ACTIVE-IDLE",
+      "[log3.txt] ERROR log3.txt line 9 at 18:34:20'398\"956 PacketReceiver.cpp[752] ERROR!! 18:34:20'398\"956|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE1 BID1 TRF0]: long forward jump of pn (168114->168235 delta=121)"
+    ],
+    "retrieval_scores": [
+      0.976127564907074,
+      0.034705158323049545,
+      0.018529923632740974,
+      0.008707127533853054,
+      0.0035452176816761494,
+      0.0021171506959944963
+    ],
+    "confidence": 0.6521866071387193,
+    "confidence_trajectory": [
+      0.6521866071387193
+    ],
+    "iterations": 1,
+    "latency_s": 8.407640218734741,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99206, Requested 1080. Please try again in 4m7.104s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Dense+Rerank",
+    "query": "What chain of events led to packet loss after registration?",
+    "ground_truth": "Registration -> PDU session establishment -> RRC reconfiguration failure (code 4) -> CU-CP UE release -> long forward jump / packet loss",
+    "predicted_root_cause": "Packet loss occurred due to a long forward jump in packet sequence numbers after a UE context release request.",
+    "supporting_logs": [
+      "[log3.txt] ERROR log3.txt line 10 at 18:34:20'400\"014 PacketReceiver.cpp[777] ERROR!! 18:34:20'400\"014|351ba6c0 PacketReceiver.cpp[777]:TRF:Rx[UE4 BID1 TRF0]: 11 packets lost due to long forward jump",
+      "[log3.txt] ERROR log3.txt line 9 at 18:34:20'398\"956 PacketReceiver.cpp[752] ERROR!! 18:34:20'398\"956|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE1 BID1 TRF0]: long forward jump of pn (168114->168235 delta=121)",
+      "[log3.txt] ERROR log3.txt line 8 at 18:34:20'396\"958 PacketReceiver.cpp[752] ERROR!! 18:34:20'396\"958|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE4 BID1 TRF0]: long forward jump of pn (167942->168064 delta=122)",
+      "[log1.txt] INFO log1.txt line 12 at 18:34:15.100 UEC-1: UE1 18:34:15.100 18:34:15.100 ACR: UEC-1: UE1: Received RRC Release while in FIVE-GS-MM-REGISTERED state",
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log1.txt] INFO log1.txt line 8 at 18:34:12.395 AMF-1: GNB-2 18:34:12.395 18:34:12.395 INF: AMF-1: GNB-2: [NgLink::OnReceiveUeContextReleaseRequest]::Received UE CONTEXT RELEASE REQUEST from GNB-2 handled successfully"
+    ],
+    "retrieval_scores": [
+      0.0009251997689716518,
+      2.1237035980448127e-05,
+      2.1111032765475102e-05,
+      1.828698441386223e-05,
+      1.3104568097332958e-05,
+      1.216071814269526e-05
+    ],
+    "confidence": 0.6000505550054186,
+    "confidence_trajectory": [
+      0.6000505550054186
+    ],
+    "iterations": 1,
+    "latency_s": 7.408020496368408,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99206, Requested 1062. Please try again in 3m51.552s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Dense+Rerank",
+    "query": "What happened around 18:34:08?",
+    "ground_truth": "At 18:34:08 UE4 RRC reconfiguration failed (code 4) and CU-CP began triggering UE release",
+    "predicted_root_cause": "Packet loss due to long forward jump in PacketReceiver.",
+    "supporting_logs": [
+      "[log3.txt] ERROR log3.txt line 10 at 18:34:20'400\"014 PacketReceiver.cpp[777] ERROR!! 18:34:20'400\"014|351ba6c0 PacketReceiver.cpp[777]:TRF:Rx[UE4 BID1 TRF0]: 11 packets lost due to long forward jump",
+      "[log1.txt] INFO log1.txt line 3 at 18:34:07.300 UEC-1: UE4 18:34:07.300 18:34:07.300 INF: UEC-1: UE4: PDU Session Establishment Accept received",
+      "[log3.txt] ERROR log3.txt line 9 at 18:34:20'398\"956 PacketReceiver.cpp[752] ERROR!! 18:34:20'398\"956|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE1 BID1 TRF0]: long forward jump of pn (168114->168235 delta=121)",
+      "[log3.txt] ERROR log3.txt line 8 at 18:34:20'396\"958 PacketReceiver.cpp[752] ERROR!! 18:34:20'396\"958|351ba6c0 PacketReceiver.cpp[752]:TRF:Rx[UE4 BID1 TRF0]: long forward jump of pn (167942->168064 delta=122)",
+      "[log1.txt] ERROR log1.txt line 5 at 18:34:09.500 UEC-1: UE4 18:34:09.500 18:34:09.500 INF: UEC-1: UE4: Cancel All Active Fsm before CTRL_DEL_UE : UE4",
+      "[log1.txt] INFO log1.txt line 12 at 18:34:15.100 UEC-1: UE1 18:34:15.100 18:34:15.100 ACR: UEC-1: UE1: Received RRC Release while in FIVE-GS-MM-REGISTERED state"
+    ],
+    "retrieval_scores": [
+      0.4396247863769531,
+      0.2616982161998749,
+      0.21604621410369873,
+      0.2014850229024887,
+      0.18387249112129211,
+      0.08356282114982605
+    ],
+    "confidence": 0.6693144775927066,
+    "confidence_trajectory": [
+      0.6693144775927066
+    ],
+    "iterations": 1,
+    "latency_s": 8.253944396972656,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99206, Requested 1086. Please try again in 4m12.287999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "Dense+Rerank",
+    "query": "Did UE1 experience the same failure as UE4?",
+    "ground_truth": "No. UE1 received a normal RRC Release while registered; UE4 suffered an RRCReconfiguration failure (code 4).",
+    "predicted_root_cause": "UE4 experienced a failure while applying an RRCReconfiguration message, but there is no information about UE1 experiencing the same failure.",
+    "supporting_logs": [
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log2.txt] ERROR log2.txt line 3 at 18:34:08'417\"426 rfma_impl.cpp[80] 4 ERROR!! 18:34:08'417\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log1.txt] ERROR log1.txt line 5 at 18:34:09.500 UEC-1: UE4 18:34:09.500 18:34:09.500 INF: UEC-1: UE4: Cancel All Active Fsm before CTRL_DEL_UE : UE4",
+      "[log1.txt] INFO log1.txt line 10 at 18:34:12.460 UEC-1: UE4 18:34:12.460 18:34:12.460 INF: UEC-1: UE4: Ignoring Rrc Release in NAS-FIVEGS-SM-PDU-SESSION-ACTIVE-IDLE",
+      "[log2.txt] ERROR log2.txt line 5 at 18:34:09'500\"100 rfma_impl.cpp[92] d 18:34:09'500\"100|75bb06c0 rfma_impl.cpp[92]:UEC-1: UE4: Cancel All Active Fsm before CTRL_DEL_UE : UE4",
+      "[log1.txt] INFO log1.txt line 3 at 18:34:07.300 UEC-1: UE4 18:34:07.300 18:34:07.300 INF: UEC-1: UE4: PDU Session Establishment Accept received"
+    ],
+    "retrieval_scores": [
+      0.9839470386505127,
+      0.8215024471282959,
+      0.3723134696483612,
+      0.13096776604652405,
+      0.09049665927886963,
+      0.03564826399087906
+    ],
+    "confidence": 0.7217437822371721,
+    "confidence_trajectory": [
+      0.7217437822371721
+    ],
+    "iterations": 1,
+    "latency_s": 6.177135944366455,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99206, Requested 1017. Please try again in 3m12.672s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "FixedIterative",
+    "query": "Why did UE4 fail?",
+    "ground_truth": "RRC Reconfiguration failure code 4 in rfma_impl.cpp caused UE4 release",
+    "predicted_root_cause": "RRCReconfiguration failure for UE4 due to a failure while applying the RRCReconfiguration message, resulting in a cancellation of all active FSMs before CTRL_DEL_UE.",
+    "supporting_logs": [
+      "[log2.txt] ERROR log2.txt line 3 at 18:34:08'417\"426 rfma_impl.cpp[80] 4 ERROR!! 18:34:08'417\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log1.txt] FAIL log1.txt line 4 at 18:34:08.417 UEC-1: UE4 4 18:34:08.417 18:34:08.417 ACR: UEC-1: UE4: UE4: Failure (code 4) while applying RRCReconfiguration message",
+      "[log1.txt] INFO log1.txt line 10 at 18:34:12.460 UEC-1: UE4 18:34:12.460 18:34:12.460 INF: UEC-1: UE4: Ignoring Rrc Release in NAS-FIVEGS-SM-PDU-SESSION-ACTIVE-IDLE",
+      "[log2.txt] ERROR log2.txt line 8 at 18:34:15'100\"426 rfma_impl.cpp[80] ERROR!! 18:34:15'100\"426|75bb06c0 rfma_impl.cpp[80]:VIP: UEC-1: UE1: UE1: Starting RRC Release on Receiving RRC Release Message from GNB",
+      "[log1.txt] ERROR log1.txt line 5 at 18:34:09.500 UEC-1: UE4 18:34:09.500 18:34:09.500 INF: UEC-1: UE4: Cancel All Active Fsm before CTRL_DEL_UE : UE4",
+      "[log1.txt] INFO log1.txt line 12 at 18:34:15.100 UEC-1: UE1 18:34:15.100 18:34:15.100 ACR: UEC-1: UE1: Received RRC Release while in FIVE-GS-MM-REGISTERED state"
+    ],
+    "retrieval_scores": [
+      0.5184950352150594,
+      0.45108076748556286,
+      0.37696158745107866,
+      0.359247450236455,
+      0.30000000000000004,
+      0.2801075920764397
+    ],
+    "confidence": 0.8142946216232299,
+    "confidence_trajectory": [
+      0.6732,
+      0.6862,
+      0.8143
+    ],
+    "iterations": 3,
+    "latency_s": 27.037062168121338,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "judge-error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kns3r0aafmm95xv9yztpj491` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99205, Requested 1061. Please try again in 3m49.824s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  },
+  {
+    "method": "FixedIterative",
+    "query": "Summarize the failure scenario in this session.",
+    "ground_truth": "UE4 RRC reconfiguration failure followed by CU-CP-initiated context release and packet loss",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 11.842646360397339,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "FixedIterative",
+    "query": "What is the root cause of the incident?",
+    "ground_truth": "Failure while applying RRCReconfiguration (code 4) in rfma_impl.cpp",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 0.21155071258544922,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "FixedIterative",
+    "query": "What caused the RRC reconfiguration failure?",
+    "ground_truth": "Failure (code 4) while applying RRCReconfiguration message in rfma_impl.cpp for UE4",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 0.10979318618774414,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "FixedIterative",
+    "query": "Which source file and line reported the critical error?",
+    "ground_truth": "rfma_impl.cpp line 80 reported the RRCReconfiguration failure",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 0.1431417465209961,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "FixedIterative",
+    "query": "What error code was reported for the RRC failure?",
+    "ground_truth": "Error code 4 was reported while applying RRCReconfiguration",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 0.139085054397583,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "FixedIterative",
+    "query": "What caused the UE context release?",
+    "ground_truth": "UE Context Release triggered by CU-CP after RRC reconfiguration failure",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 0.16858577728271484,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "FixedIterative",
+    "query": "What event led the CU-CP to trigger UE release?",
+    "ground_truth": "CU-CP triggered UE release after UE4 RRC reconfiguration failure (code 4)",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 0.1192319393157959,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "FixedIterative",
+    "query": "Why were packets lost for UE4?",
+    "ground_truth": "Packet loss due to long forward jump after UE4 RRC failure and release",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 0.11629223823547363,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "FixedIterative",
+    "query": "What chain of events led to packet loss after registration?",
+    "ground_truth": "Registration -> PDU session establishment -> RRC reconfiguration failure (code 4) -> CU-CP UE release -> long forward jump / packet loss",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 0.2048959732055664,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "FixedIterative",
+    "query": "What happened around 18:34:08?",
+    "ground_truth": "At 18:34:08 UE4 RRC reconfiguration failed (code 4) and CU-CP began triggering UE release",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 0.4092097282409668,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "FixedIterative",
+    "query": "Did UE1 experience the same failure as UE4?",
+    "ground_truth": "No. UE1 received a normal RRC Release while registered; UE4 suffered an RRCReconfiguration failure (code 4).",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 0.31509876251220703,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "Adaptive",
+    "query": "Why did UE4 fail?",
+    "ground_truth": "RRC Reconfiguration failure code 4 in rfma_impl.cpp caused UE4 release",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 0.8849613666534424,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "Adaptive",
+    "query": "Summarize the failure scenario in this session.",
+    "ground_truth": "UE4 RRC reconfiguration failure followed by CU-CP-initiated context release and packet loss",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 2.5436432361602783,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "Adaptive",
+    "query": "What is the root cause of the incident?",
+    "ground_truth": "Failure while applying RRCReconfiguration (code 4) in rfma_impl.cpp",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 1.9123859405517578,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "Adaptive",
+    "query": "What caused the RRC reconfiguration failure?",
+    "ground_truth": "Failure (code 4) while applying RRCReconfiguration message in rfma_impl.cpp for UE4",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 1.8890185356140137,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "Adaptive",
+    "query": "Which source file and line reported the critical error?",
+    "ground_truth": "rfma_impl.cpp line 80 reported the RRCReconfiguration failure",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 1.4886689186096191,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "Adaptive",
+    "query": "What error code was reported for the RRC failure?",
+    "ground_truth": "Error code 4 was reported while applying RRCReconfiguration",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 1.7379846572875977,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "Adaptive",
+    "query": "What caused the UE context release?",
+    "ground_truth": "UE Context Release triggered by CU-CP after RRC reconfiguration failure",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 1.250535011291504,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "Adaptive",
+    "query": "What event led the CU-CP to trigger UE release?",
+    "ground_truth": "CU-CP triggered UE release after UE4 RRC reconfiguration failure (code 4)",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 1.5186069011688232,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "Adaptive",
+    "query": "Why were packets lost for UE4?",
+    "ground_truth": "Packet loss due to long forward jump after UE4 RRC failure and release",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 1.6435511112213135,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "Adaptive",
+    "query": "What chain of events led to packet loss after registration?",
+    "ground_truth": "Registration -> PDU session establishment -> RRC reconfiguration failure (code 4) -> CU-CP UE release -> long forward jump / packet loss",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 1.612813949584961,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "Adaptive",
+    "query": "What happened around 18:34:08?",
+    "ground_truth": "At 18:34:08 UE4 RRC reconfiguration failed (code 4) and CU-CP began triggering UE release",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 2.399939775466919,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  },
+  {
+    "method": "Adaptive",
+    "query": "Did UE1 experience the same failure as UE4?",
+    "ground_truth": "No. UE1 received a normal RRC Release while registered; UE4 suffered an RRCReconfiguration failure (code 4).",
+    "predicted_root_cause": "",
+    "supporting_logs": [],
+    "retrieval_scores": [],
+    "confidence": 0.0,
+    "confidence_trajectory": [],
+    "iterations": 1,
+    "latency_s": 1.5486817359924316,
+    "judge_verdict": "Incorrect",
+    "judge_reason": "Empty prediction."
+  }
+]

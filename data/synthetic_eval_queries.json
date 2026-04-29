@@ -1,0 +1,2872 @@
+{
+  "metadata": {
+    "description": "Synthetic telecom log evaluation dataset for RAG systems",
+    "num_scenarios": 10,
+    "num_log_entries": 1115,
+    "num_queries": 65,
+    "query_types": [
+      "root_cause",
+      "failure_tracing",
+      "error_code",
+      "temporal",
+      "impact_analysis",
+      "cross_scenario",
+      "multi_hop",
+      "contrastive"
+    ],
+    "scenarios": [
+      {
+        "id": "S01",
+        "name": "RRC Reconfiguration Failure Cascade",
+        "description": "UE7 RRC reconfiguration fails due to invalid measurement config, triggering CU-CP release and packet loss"
+      },
+      {
+        "id": "S02",
+        "name": "SCTP Transport Link Failure",
+        "description": "SCTP heartbeat timeout causes F1AP/NGAP path failure affecting multiple UEs"
+      },
+      {
+        "id": "S03",
+        "name": "Inter-gNB Handover Failure",
+        "description": "Handover preparation fails due to target cell overload, causing RLF and data interruption"
+      },
+      {
+        "id": "S04",
+        "name": "PDU Session Establishment Rejection",
+        "description": "SMF rejects PDU session due to QoS flow conflict, UE unable to establish data bearer"
+      },
+      {
+        "id": "S05",
+        "name": "RLC Max Retransmission causing DRB Failure",
+        "description": "Persistent radio conditions cause RLC max retransmission for UE5, triggering DRB failure and re-establishment"
+      },
+      {
+        "id": "S06",
+        "name": "GTP-U Path Failure on Backhaul",
+        "description": "Backhaul link degradation causes GTP-U path failure between CU-UP and UPF affecting multiple UE data sessions"
+      },
+      {
+        "id": "S07",
+        "name": "5G-AKA Authentication Failure",
+        "description": "AUSF authentication failure due to SQN synchronization causes UE registration rejection"
+      },
+      {
+        "id": "S08",
+        "name": "DL Scheduler Starvation under Load",
+        "description": "High cell load causes proportional fair scheduler to starve low-priority UEs, triggering BSR timeouts"
+      },
+      {
+        "id": "S09",
+        "name": "IPSec Tunnel Failure on Midhaul",
+        "description": "IPSec IKEv2 SA expiry without timely rekeying causes midhaul encryption failure"
+      },
+      {
+        "id": "S10",
+        "name": "AMF Overload causing Registration Delays",
+        "description": "AMF overload from registration storm causes NAS message processing delays and timeouts"
+      }
+    ]
+  },
+  "queries": [
+    {
+      "id": "Q001",
+      "query": "What is the root cause of the failure affecting UE7?",
+      "type": "root_cause",
+      "difficulty": "medium",
+      "scenario_id": "S01",
+      "ground_truth": {
+        "root_cause": "Invalid measurement configuration in RRC Reconfiguration message causes failure code 4 in rrc_reconfig_handler.cpp line 142, propagating to CU-CP UE context release and downstream GTP-U tunnel teardown with 23 packets lost",
+        "relevant_files": [
+          "core_nw_amf.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "RRC",
+          "UE_CONTEXT",
+          "F1AP",
+          "GTP-U",
+          "PACKET_PROC",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "RRC_RECONFIG_FAIL_004",
+          "RRC_RECONFIG_FAIL_004",
+          "F1AP_UE_CTX_SETUP_FAIL_012",
+          "BEARER_REL_ERR_127",
+          "GTPU_TUNNEL_ERR_031",
+          "AMF_UE_CTX_REL_097"
+        ],
+        "affected_ues": [
+          "UE7"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "bearer_mgmt",
+        "bearer_rel_err_127",
+        "gtp-u",
+        "ue7",
+        "ue_context",
+        "rrc",
+        "amf_ue_ctx_rel_097",
+        "f1ap_ue_ctx_setup_fail_012",
+        "rrc_reconfig_fail_004",
+        "failure",
+        "gtpu_tunnel_err_031"
+      ]
+    },
+    {
+      "id": "Q002",
+      "query": "What error occurred in the RRC module and what were its downstream effects?",
+      "type": "failure_tracing",
+      "difficulty": "medium",
+      "scenario_id": "S01",
+      "ground_truth": {
+        "root_cause": "Invalid measurement configuration in RRC Reconfiguration message causes failure code 4 in rrc_reconfig_handler.cpp line 142, propagating to CU-CP UE context release and downstream GTP-U tunnel teardown with 23 packets lost",
+        "relevant_files": [
+          "core_nw_amf.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "RRC",
+          "UE_CONTEXT",
+          "F1AP",
+          "GTP-U",
+          "PACKET_PROC",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "RRC_RECONFIG_FAIL_004",
+          "RRC_RECONFIG_FAIL_004",
+          "F1AP_UE_CTX_SETUP_FAIL_012",
+          "BEARER_REL_ERR_127",
+          "GTPU_TUNNEL_ERR_031",
+          "AMF_UE_CTX_REL_097"
+        ],
+        "affected_ues": [
+          "UE7"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "bearer_mgmt",
+        "bearer_rel_err_127",
+        "gtp-u",
+        "ue7",
+        "ue_context",
+        "rrc",
+        "amf_ue_ctx_rel_097",
+        "f1ap_ue_ctx_setup_fail_012",
+        "rrc_reconfig_fail_004",
+        "failure",
+        "gtpu_tunnel_err_031"
+      ]
+    },
+    {
+      "id": "Q003",
+      "query": "Trace the complete chain of events from enodeb_rrc.log to core_nw_amf.log that led to the rrc reconfiguration failure cascade.",
+      "type": "multi_hop",
+      "difficulty": "hard",
+      "scenario_id": "S01",
+      "ground_truth": {
+        "root_cause": "Invalid measurement configuration in RRC Reconfiguration message causes failure code 4 in rrc_reconfig_handler.cpp line 142, propagating to CU-CP UE context release and downstream GTP-U tunnel teardown with 23 packets lost",
+        "relevant_files": [
+          "core_nw_amf.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "RRC",
+          "UE_CONTEXT",
+          "F1AP",
+          "GTP-U",
+          "PACKET_PROC",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "RRC_RECONFIG_FAIL_004",
+          "RRC_RECONFIG_FAIL_004",
+          "F1AP_UE_CTX_SETUP_FAIL_012",
+          "BEARER_REL_ERR_127",
+          "GTPU_TUNNEL_ERR_031",
+          "AMF_UE_CTX_REL_097"
+        ],
+        "affected_ues": [
+          "UE7"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "bearer_mgmt",
+        "bearer_rel_err_127",
+        "gtp-u",
+        "ue7",
+        "ue_context",
+        "rrc",
+        "amf_ue_ctx_rel_097",
+        "f1ap_ue_ctx_setup_fail_012",
+        "rrc_reconfig_fail_004",
+        "failure",
+        "gtpu_tunnel_err_031"
+      ]
+    },
+    {
+      "id": "Q004",
+      "query": "What events occurred during the rrc reconfiguration failure cascade incident and in what order?",
+      "type": "temporal",
+      "difficulty": "medium",
+      "scenario_id": "S01",
+      "ground_truth": {
+        "root_cause": "Invalid measurement configuration in RRC Reconfiguration message causes failure code 4 in rrc_reconfig_handler.cpp line 142, propagating to CU-CP UE context release and downstream GTP-U tunnel teardown with 23 packets lost",
+        "relevant_files": [
+          "core_nw_amf.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "RRC",
+          "UE_CONTEXT",
+          "F1AP",
+          "GTP-U",
+          "PACKET_PROC",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "RRC_RECONFIG_FAIL_004",
+          "RRC_RECONFIG_FAIL_004",
+          "F1AP_UE_CTX_SETUP_FAIL_012",
+          "BEARER_REL_ERR_127",
+          "GTPU_TUNNEL_ERR_031",
+          "AMF_UE_CTX_REL_097"
+        ],
+        "affected_ues": [
+          "UE7"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "bearer_mgmt",
+        "bearer_rel_err_127",
+        "gtp-u",
+        "ue7",
+        "ue_context",
+        "rrc",
+        "amf_ue_ctx_rel_097",
+        "f1ap_ue_ctx_setup_fail_012",
+        "rrc_reconfig_fail_004",
+        "failure",
+        "gtpu_tunnel_err_031"
+      ]
+    },
+    {
+      "id": "Q005",
+      "query": "What was the impact of the rrc reconfiguration failure cascade on user equipment and network services?",
+      "type": "impact_analysis",
+      "difficulty": "medium",
+      "scenario_id": "S01",
+      "ground_truth": {
+        "root_cause": "Invalid measurement configuration in RRC Reconfiguration message causes failure code 4 in rrc_reconfig_handler.cpp line 142, propagating to CU-CP UE context release and downstream GTP-U tunnel teardown with 23 packets lost",
+        "relevant_files": [
+          "core_nw_amf.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "RRC",
+          "UE_CONTEXT",
+          "F1AP",
+          "GTP-U",
+          "PACKET_PROC",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "RRC_RECONFIG_FAIL_004",
+          "RRC_RECONFIG_FAIL_004",
+          "F1AP_UE_CTX_SETUP_FAIL_012",
+          "BEARER_REL_ERR_127",
+          "GTPU_TUNNEL_ERR_031",
+          "AMF_UE_CTX_REL_097"
+        ],
+        "affected_ues": [
+          "UE7"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "bearer_mgmt",
+        "bearer_rel_err_127",
+        "gtp-u",
+        "ue7",
+        "ue_context",
+        "rrc",
+        "amf_ue_ctx_rel_097",
+        "f1ap_ue_ctx_setup_fail_012",
+        "rrc_reconfig_fail_004",
+        "failure",
+        "gtpu_tunnel_err_031"
+      ]
+    },
+    {
+      "id": "Q006",
+      "query": "What does error code RRC_RECONFIG_FAIL_004 indicate and what caused it?",
+      "type": "error_code",
+      "difficulty": "easy",
+      "scenario_id": "S01",
+      "ground_truth": {
+        "root_cause": "Invalid measurement configuration in RRC Reconfiguration message causes failure code 4 in rrc_reconfig_handler.cpp line 142, propagating to CU-CP UE context release and downstream GTP-U tunnel teardown with 23 packets lost",
+        "relevant_files": [
+          "enodeb_rrc.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "RRC",
+          "UE_CONTEXT",
+          "F1AP",
+          "GTP-U",
+          "PACKET_PROC",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "RRC_RECONFIG_FAIL_004",
+          "RRC_RECONFIG_FAIL_004",
+          "F1AP_UE_CTX_SETUP_FAIL_012",
+          "BEARER_REL_ERR_127",
+          "GTPU_TUNNEL_ERR_031",
+          "AMF_UE_CTX_REL_097"
+        ],
+        "affected_ues": [
+          "UE7"
+        ],
+        "requires_multi_hop": false
+      },
+      "keywords": [
+        "bearer_mgmt",
+        "bearer_rel_err_127",
+        "gtp-u",
+        "ue7",
+        "ue_context",
+        "rrc",
+        "amf_ue_ctx_rel_097",
+        "f1ap_ue_ctx_setup_fail_012",
+        "rrc_reconfig_fail_004",
+        "failure",
+        "gtpu_tunnel_err_031"
+      ]
+    },
+    {
+      "id": "Q007",
+      "query": "What is the root cause of the failure affecting UE1?",
+      "type": "root_cause",
+      "difficulty": "medium",
+      "scenario_id": "S02",
+      "ground_truth": {
+        "root_cause": "SCTP heartbeat timeout on transport link between CU-CP and DU (IP 10.0.1.15:38412) due to network congestion causes F1AP association failure, leading to all UEs on that link losing connectivity with 45 UEs affected and forced re-establishment",
+        "relevant_files": [
+          "ran_cell.log",
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "RADIO_RESOURCE",
+          "UE_CONTEXT",
+          "F1AP",
+          "SCTP",
+          "CELL_MGMT"
+        ],
+        "error_codes": [
+          "SCTP_HEARTBEAT_TIMEOUT_084",
+          "SCTP_ASSOC_FAIL_081",
+          "F1AP_RESET_015"
+        ],
+        "affected_ues": [
+          "UE1",
+          "UE2",
+          "UE3",
+          "UE4",
+          "UE5",
+          "UE12",
+          "UE15",
+          "UE18",
+          "UE21"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "ue1",
+        "sctp_heartbeat_timeout_084",
+        "ue3",
+        "ue_context",
+        "sctp",
+        "ue2",
+        "f1ap_reset_015",
+        "amf",
+        "sctp_assoc_fail_081",
+        "timeout",
+        "failure",
+        "f1ap"
+      ]
+    },
+    {
+      "id": "Q008",
+      "query": "What error occurred in the SCTP module and what were its downstream effects?",
+      "type": "failure_tracing",
+      "difficulty": "medium",
+      "scenario_id": "S02",
+      "ground_truth": {
+        "root_cause": "SCTP heartbeat timeout on transport link between CU-CP and DU (IP 10.0.1.15:38412) due to network congestion causes F1AP association failure, leading to all UEs on that link losing connectivity with 45 UEs affected and forced re-establishment",
+        "relevant_files": [
+          "ran_cell.log",
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "RADIO_RESOURCE",
+          "UE_CONTEXT",
+          "F1AP",
+          "SCTP",
+          "CELL_MGMT"
+        ],
+        "error_codes": [
+          "SCTP_HEARTBEAT_TIMEOUT_084",
+          "SCTP_ASSOC_FAIL_081",
+          "F1AP_RESET_015"
+        ],
+        "affected_ues": [
+          "UE1",
+          "UE2",
+          "UE3",
+          "UE4",
+          "UE5",
+          "UE12",
+          "UE15",
+          "UE18",
+          "UE21"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "ue1",
+        "sctp_heartbeat_timeout_084",
+        "ue3",
+        "ue_context",
+        "sctp",
+        "ue2",
+        "f1ap_reset_015",
+        "amf",
+        "sctp_assoc_fail_081",
+        "timeout",
+        "failure",
+        "f1ap"
+      ]
+    },
+    {
+      "id": "Q009",
+      "query": "Trace the complete chain of events from transport_sctp.log to ran_cell.log that led to the sctp transport link failure.",
+      "type": "multi_hop",
+      "difficulty": "hard",
+      "scenario_id": "S02",
+      "ground_truth": {
+        "root_cause": "SCTP heartbeat timeout on transport link between CU-CP and DU (IP 10.0.1.15:38412) due to network congestion causes F1AP association failure, leading to all UEs on that link losing connectivity with 45 UEs affected and forced re-establishment",
+        "relevant_files": [
+          "ran_cell.log",
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "RADIO_RESOURCE",
+          "UE_CONTEXT",
+          "F1AP",
+          "SCTP",
+          "CELL_MGMT"
+        ],
+        "error_codes": [
+          "SCTP_HEARTBEAT_TIMEOUT_084",
+          "SCTP_ASSOC_FAIL_081",
+          "F1AP_RESET_015"
+        ],
+        "affected_ues": [
+          "UE1",
+          "UE2",
+          "UE3",
+          "UE4",
+          "UE5",
+          "UE12",
+          "UE15",
+          "UE18",
+          "UE21"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "ue1",
+        "sctp_heartbeat_timeout_084",
+        "ue3",
+        "ue_context",
+        "sctp",
+        "ue2",
+        "f1ap_reset_015",
+        "amf",
+        "sctp_assoc_fail_081",
+        "timeout",
+        "failure",
+        "f1ap"
+      ]
+    },
+    {
+      "id": "Q010",
+      "query": "What events occurred during the sctp transport link failure incident and in what order?",
+      "type": "temporal",
+      "difficulty": "medium",
+      "scenario_id": "S02",
+      "ground_truth": {
+        "root_cause": "SCTP heartbeat timeout on transport link between CU-CP and DU (IP 10.0.1.15:38412) due to network congestion causes F1AP association failure, leading to all UEs on that link losing connectivity with 45 UEs affected and forced re-establishment",
+        "relevant_files": [
+          "ran_cell.log",
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "RADIO_RESOURCE",
+          "UE_CONTEXT",
+          "F1AP",
+          "SCTP",
+          "CELL_MGMT"
+        ],
+        "error_codes": [
+          "SCTP_HEARTBEAT_TIMEOUT_084",
+          "SCTP_ASSOC_FAIL_081",
+          "F1AP_RESET_015"
+        ],
+        "affected_ues": [
+          "UE1",
+          "UE2",
+          "UE3",
+          "UE4",
+          "UE5",
+          "UE12",
+          "UE15",
+          "UE18",
+          "UE21"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "ue1",
+        "sctp_heartbeat_timeout_084",
+        "ue3",
+        "ue_context",
+        "sctp",
+        "ue2",
+        "f1ap_reset_015",
+        "amf",
+        "sctp_assoc_fail_081",
+        "timeout",
+        "failure",
+        "f1ap"
+      ]
+    },
+    {
+      "id": "Q011",
+      "query": "What was the impact of the sctp transport link failure on user equipment and network services?",
+      "type": "impact_analysis",
+      "difficulty": "medium",
+      "scenario_id": "S02",
+      "ground_truth": {
+        "root_cause": "SCTP heartbeat timeout on transport link between CU-CP and DU (IP 10.0.1.15:38412) due to network congestion causes F1AP association failure, leading to all UEs on that link losing connectivity with 45 UEs affected and forced re-establishment",
+        "relevant_files": [
+          "ran_cell.log",
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "RADIO_RESOURCE",
+          "UE_CONTEXT",
+          "F1AP",
+          "SCTP",
+          "CELL_MGMT"
+        ],
+        "error_codes": [
+          "SCTP_HEARTBEAT_TIMEOUT_084",
+          "SCTP_ASSOC_FAIL_081",
+          "F1AP_RESET_015"
+        ],
+        "affected_ues": [
+          "UE1",
+          "UE2",
+          "UE3",
+          "UE4",
+          "UE5",
+          "UE12",
+          "UE15",
+          "UE18",
+          "UE21"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "ue1",
+        "sctp_heartbeat_timeout_084",
+        "ue3",
+        "ue_context",
+        "sctp",
+        "ue2",
+        "f1ap_reset_015",
+        "amf",
+        "sctp_assoc_fail_081",
+        "timeout",
+        "failure",
+        "f1ap"
+      ]
+    },
+    {
+      "id": "Q012",
+      "query": "What does error code SCTP_HEARTBEAT_TIMEOUT_084 indicate and what caused it?",
+      "type": "error_code",
+      "difficulty": "easy",
+      "scenario_id": "S02",
+      "ground_truth": {
+        "root_cause": "SCTP heartbeat timeout on transport link between CU-CP and DU (IP 10.0.1.15:38412) due to network congestion causes F1AP association failure, leading to all UEs on that link losing connectivity with 45 UEs affected and forced re-establishment",
+        "relevant_files": [
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "RADIO_RESOURCE",
+          "UE_CONTEXT",
+          "F1AP",
+          "SCTP",
+          "CELL_MGMT"
+        ],
+        "error_codes": [
+          "SCTP_HEARTBEAT_TIMEOUT_084",
+          "SCTP_ASSOC_FAIL_081",
+          "F1AP_RESET_015"
+        ],
+        "affected_ues": [
+          "UE1",
+          "UE2",
+          "UE3",
+          "UE4",
+          "UE5",
+          "UE12",
+          "UE15",
+          "UE18",
+          "UE21"
+        ],
+        "requires_multi_hop": false
+      },
+      "keywords": [
+        "ue1",
+        "sctp_heartbeat_timeout_084",
+        "ue3",
+        "ue_context",
+        "sctp",
+        "ue2",
+        "f1ap_reset_015",
+        "amf",
+        "sctp_assoc_fail_081",
+        "timeout",
+        "failure",
+        "f1ap"
+      ]
+    },
+    {
+      "id": "Q013",
+      "query": "What is the root cause of the failure affecting UE11?",
+      "type": "root_cause",
+      "difficulty": "medium",
+      "scenario_id": "S03",
+      "ground_truth": {
+        "root_cause": "Handover preparation failure for UE11 from Cell-12 to Cell-15 due to target cell resource exhaustion (PRB utilization 97%), triggering Radio Link Failure with T310 timer expiry at the source, PDCP data loss of 847 SDUs during 2.3s interruption",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "RADIO_RESOURCE",
+          "RRC",
+          "HANDOVER",
+          "PHY",
+          "GTP-U",
+          "SCHEDULER",
+          "PDCP"
+        ],
+        "error_codes": [
+          "SCHED_RESOURCE_EXHAUST_137",
+          "HO_PREP_FAIL_141",
+          "PDCP_SN_OVERFLOW_047"
+        ],
+        "affected_ues": [
+          "UE11"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "pdcp_sn_overflow_047",
+        "loss",
+        "pdcp",
+        "ue11",
+        "phy",
+        "sched_resource_exhaust_137",
+        "handover",
+        "rrc",
+        "ho_prep_fail_141",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q014",
+      "query": "What error occurred in the HANDOVER module and what were its downstream effects?",
+      "type": "failure_tracing",
+      "difficulty": "medium",
+      "scenario_id": "S03",
+      "ground_truth": {
+        "root_cause": "Handover preparation failure for UE11 from Cell-12 to Cell-15 due to target cell resource exhaustion (PRB utilization 97%), triggering Radio Link Failure with T310 timer expiry at the source, PDCP data loss of 847 SDUs during 2.3s interruption",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "RADIO_RESOURCE",
+          "RRC",
+          "HANDOVER",
+          "PHY",
+          "GTP-U",
+          "SCHEDULER",
+          "PDCP"
+        ],
+        "error_codes": [
+          "SCHED_RESOURCE_EXHAUST_137",
+          "HO_PREP_FAIL_141",
+          "PDCP_SN_OVERFLOW_047"
+        ],
+        "affected_ues": [
+          "UE11"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "pdcp_sn_overflow_047",
+        "loss",
+        "pdcp",
+        "ue11",
+        "phy",
+        "sched_resource_exhaust_137",
+        "handover",
+        "rrc",
+        "ho_prep_fail_141",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q015",
+      "query": "Trace the complete chain of events from ran_cell.log to enodeb_rrc.log that led to the inter-gnb handover failure.",
+      "type": "multi_hop",
+      "difficulty": "hard",
+      "scenario_id": "S03",
+      "ground_truth": {
+        "root_cause": "Handover preparation failure for UE11 from Cell-12 to Cell-15 due to target cell resource exhaustion (PRB utilization 97%), triggering Radio Link Failure with T310 timer expiry at the source, PDCP data loss of 847 SDUs during 2.3s interruption",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "RADIO_RESOURCE",
+          "RRC",
+          "HANDOVER",
+          "PHY",
+          "GTP-U",
+          "SCHEDULER",
+          "PDCP"
+        ],
+        "error_codes": [
+          "SCHED_RESOURCE_EXHAUST_137",
+          "HO_PREP_FAIL_141",
+          "PDCP_SN_OVERFLOW_047"
+        ],
+        "affected_ues": [
+          "UE11"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "pdcp_sn_overflow_047",
+        "loss",
+        "pdcp",
+        "ue11",
+        "phy",
+        "sched_resource_exhaust_137",
+        "handover",
+        "rrc",
+        "ho_prep_fail_141",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q016",
+      "query": "What events occurred during the inter-gnb handover failure incident and in what order?",
+      "type": "temporal",
+      "difficulty": "medium",
+      "scenario_id": "S03",
+      "ground_truth": {
+        "root_cause": "Handover preparation failure for UE11 from Cell-12 to Cell-15 due to target cell resource exhaustion (PRB utilization 97%), triggering Radio Link Failure with T310 timer expiry at the source, PDCP data loss of 847 SDUs during 2.3s interruption",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "RADIO_RESOURCE",
+          "RRC",
+          "HANDOVER",
+          "PHY",
+          "GTP-U",
+          "SCHEDULER",
+          "PDCP"
+        ],
+        "error_codes": [
+          "SCHED_RESOURCE_EXHAUST_137",
+          "HO_PREP_FAIL_141",
+          "PDCP_SN_OVERFLOW_047"
+        ],
+        "affected_ues": [
+          "UE11"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "pdcp_sn_overflow_047",
+        "loss",
+        "pdcp",
+        "ue11",
+        "phy",
+        "sched_resource_exhaust_137",
+        "handover",
+        "rrc",
+        "ho_prep_fail_141",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q017",
+      "query": "What was the impact of the inter-gnb handover failure on user equipment and network services?",
+      "type": "impact_analysis",
+      "difficulty": "medium",
+      "scenario_id": "S03",
+      "ground_truth": {
+        "root_cause": "Handover preparation failure for UE11 from Cell-12 to Cell-15 due to target cell resource exhaustion (PRB utilization 97%), triggering Radio Link Failure with T310 timer expiry at the source, PDCP data loss of 847 SDUs during 2.3s interruption",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "RADIO_RESOURCE",
+          "RRC",
+          "HANDOVER",
+          "PHY",
+          "GTP-U",
+          "SCHEDULER",
+          "PDCP"
+        ],
+        "error_codes": [
+          "SCHED_RESOURCE_EXHAUST_137",
+          "HO_PREP_FAIL_141",
+          "PDCP_SN_OVERFLOW_047"
+        ],
+        "affected_ues": [
+          "UE11"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "pdcp_sn_overflow_047",
+        "loss",
+        "pdcp",
+        "ue11",
+        "phy",
+        "sched_resource_exhaust_137",
+        "handover",
+        "rrc",
+        "ho_prep_fail_141",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q018",
+      "query": "What does error code SCHED_RESOURCE_EXHAUST_137 indicate and what caused it?",
+      "type": "error_code",
+      "difficulty": "easy",
+      "scenario_id": "S03",
+      "ground_truth": {
+        "root_cause": "Handover preparation failure for UE11 from Cell-12 to Cell-15 due to target cell resource exhaustion (PRB utilization 97%), triggering Radio Link Failure with T310 timer expiry at the source, PDCP data loss of 847 SDUs during 2.3s interruption",
+        "relevant_files": [
+          "ran_cell.log"
+        ],
+        "relevant_modules": [
+          "RADIO_RESOURCE",
+          "RRC",
+          "HANDOVER",
+          "PHY",
+          "GTP-U",
+          "SCHEDULER",
+          "PDCP"
+        ],
+        "error_codes": [
+          "SCHED_RESOURCE_EXHAUST_137",
+          "HO_PREP_FAIL_141",
+          "PDCP_SN_OVERFLOW_047"
+        ],
+        "affected_ues": [
+          "UE11"
+        ],
+        "requires_multi_hop": false
+      },
+      "keywords": [
+        "pdcp_sn_overflow_047",
+        "loss",
+        "pdcp",
+        "ue11",
+        "phy",
+        "sched_resource_exhaust_137",
+        "handover",
+        "rrc",
+        "ho_prep_fail_141",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q019",
+      "query": "What is the root cause of the failure affecting UE22?",
+      "type": "root_cause",
+      "difficulty": "medium",
+      "scenario_id": "S04",
+      "ground_truth": {
+        "root_cause": "SMF rejects PDU Session Establishment for UE22 because requested QoS flow (5QI=1, voice) conflicts with existing session policy (max 2 GBR flows per UE) set by PCF, resulting in NAS rejection cause #29 (user authentication/authorization failure) sent to UE",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "core_nw_smf.log",
+          "core_nw_pcf.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "PCF",
+          "AMF",
+          "NGAP",
+          "SMF"
+        ],
+        "error_codes": [
+          "SMF_QOS_FLOW_ERR_104",
+          "SMF_PDU_SESS_FAIL_101"
+        ],
+        "affected_ues": [
+          "UE22"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "smf",
+        "smf_pdu_sess_fail_101",
+        "reject",
+        "pcf",
+        "smf_qos_flow_err_104",
+        "failure",
+        "ue22"
+      ]
+    },
+    {
+      "id": "Q020",
+      "query": "What error occurred in the PCF module and what were its downstream effects?",
+      "type": "failure_tracing",
+      "difficulty": "medium",
+      "scenario_id": "S04",
+      "ground_truth": {
+        "root_cause": "SMF rejects PDU Session Establishment for UE22 because requested QoS flow (5QI=1, voice) conflicts with existing session policy (max 2 GBR flows per UE) set by PCF, resulting in NAS rejection cause #29 (user authentication/authorization failure) sent to UE",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "core_nw_smf.log",
+          "core_nw_pcf.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "PCF",
+          "AMF",
+          "NGAP",
+          "SMF"
+        ],
+        "error_codes": [
+          "SMF_QOS_FLOW_ERR_104",
+          "SMF_PDU_SESS_FAIL_101"
+        ],
+        "affected_ues": [
+          "UE22"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "smf",
+        "smf_pdu_sess_fail_101",
+        "reject",
+        "pcf",
+        "smf_qos_flow_err_104",
+        "failure",
+        "ue22"
+      ]
+    },
+    {
+      "id": "Q021",
+      "query": "Trace the complete chain of events from core_nw_amf.log to cu_cp_f1ap.log that led to the pdu session establishment rejection.",
+      "type": "multi_hop",
+      "difficulty": "hard",
+      "scenario_id": "S04",
+      "ground_truth": {
+        "root_cause": "SMF rejects PDU Session Establishment for UE22 because requested QoS flow (5QI=1, voice) conflicts with existing session policy (max 2 GBR flows per UE) set by PCF, resulting in NAS rejection cause #29 (user authentication/authorization failure) sent to UE",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "core_nw_smf.log",
+          "core_nw_pcf.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "PCF",
+          "AMF",
+          "NGAP",
+          "SMF"
+        ],
+        "error_codes": [
+          "SMF_QOS_FLOW_ERR_104",
+          "SMF_PDU_SESS_FAIL_101"
+        ],
+        "affected_ues": [
+          "UE22"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "smf",
+        "smf_pdu_sess_fail_101",
+        "reject",
+        "pcf",
+        "smf_qos_flow_err_104",
+        "failure",
+        "ue22"
+      ]
+    },
+    {
+      "id": "Q022",
+      "query": "What events occurred during the pdu session establishment rejection incident and in what order?",
+      "type": "temporal",
+      "difficulty": "medium",
+      "scenario_id": "S04",
+      "ground_truth": {
+        "root_cause": "SMF rejects PDU Session Establishment for UE22 because requested QoS flow (5QI=1, voice) conflicts with existing session policy (max 2 GBR flows per UE) set by PCF, resulting in NAS rejection cause #29 (user authentication/authorization failure) sent to UE",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "core_nw_smf.log",
+          "core_nw_pcf.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "PCF",
+          "AMF",
+          "NGAP",
+          "SMF"
+        ],
+        "error_codes": [
+          "SMF_QOS_FLOW_ERR_104",
+          "SMF_PDU_SESS_FAIL_101"
+        ],
+        "affected_ues": [
+          "UE22"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "smf",
+        "smf_pdu_sess_fail_101",
+        "reject",
+        "pcf",
+        "smf_qos_flow_err_104",
+        "failure",
+        "ue22"
+      ]
+    },
+    {
+      "id": "Q023",
+      "query": "What was the impact of the pdu session establishment rejection on user equipment and network services?",
+      "type": "impact_analysis",
+      "difficulty": "medium",
+      "scenario_id": "S04",
+      "ground_truth": {
+        "root_cause": "SMF rejects PDU Session Establishment for UE22 because requested QoS flow (5QI=1, voice) conflicts with existing session policy (max 2 GBR flows per UE) set by PCF, resulting in NAS rejection cause #29 (user authentication/authorization failure) sent to UE",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "core_nw_smf.log",
+          "core_nw_pcf.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "PCF",
+          "AMF",
+          "NGAP",
+          "SMF"
+        ],
+        "error_codes": [
+          "SMF_QOS_FLOW_ERR_104",
+          "SMF_PDU_SESS_FAIL_101"
+        ],
+        "affected_ues": [
+          "UE22"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "smf",
+        "smf_pdu_sess_fail_101",
+        "reject",
+        "pcf",
+        "smf_qos_flow_err_104",
+        "failure",
+        "ue22"
+      ]
+    },
+    {
+      "id": "Q024",
+      "query": "What does error code SMF_QOS_FLOW_ERR_104 indicate and what caused it?",
+      "type": "error_code",
+      "difficulty": "easy",
+      "scenario_id": "S04",
+      "ground_truth": {
+        "root_cause": "SMF rejects PDU Session Establishment for UE22 because requested QoS flow (5QI=1, voice) conflicts with existing session policy (max 2 GBR flows per UE) set by PCF, resulting in NAS rejection cause #29 (user authentication/authorization failure) sent to UE",
+        "relevant_files": [
+          "core_nw_smf.log"
+        ],
+        "relevant_modules": [
+          "PCF",
+          "AMF",
+          "NGAP",
+          "SMF"
+        ],
+        "error_codes": [
+          "SMF_QOS_FLOW_ERR_104",
+          "SMF_PDU_SESS_FAIL_101"
+        ],
+        "affected_ues": [
+          "UE22"
+        ],
+        "requires_multi_hop": false
+      },
+      "keywords": [
+        "smf",
+        "smf_pdu_sess_fail_101",
+        "reject",
+        "pcf",
+        "smf_qos_flow_err_104",
+        "failure",
+        "ue22"
+      ]
+    },
+    {
+      "id": "Q025",
+      "query": "What is the root cause of the failure affecting UE5?",
+      "type": "root_cause",
+      "difficulty": "medium",
+      "scenario_id": "S05",
+      "ground_truth": {
+        "root_cause": "Poor radio channel conditions (SINR=-2dB, BLER=32%) for UE5 on DRB-2 cause RLC AM max retransmissions (32 attempts) at rlc_am_entity.cpp line 287, triggering RLC failure indication to RRC, DRB failure report to CU-CP, and bearer modification with reduced QoS",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "RLC",
+          "RRC",
+          "PHY",
+          "QOS",
+          "MAC",
+          "INTERFERENCE",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "MAC_HARQ_NACK_MAX_067",
+          "RLC_MAX_RETX_051",
+          "BEARER_SETUP_FAIL_121"
+        ],
+        "affected_ues": [
+          "UE5"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "bearer_mgmt",
+        "mac_harq_nack_max_067",
+        "rlc",
+        "rlc_max_retx_051",
+        "rrc",
+        "ue5",
+        "bearer_setup_fail_121",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q026",
+      "query": "What error occurred in the RLC module and what were its downstream effects?",
+      "type": "failure_tracing",
+      "difficulty": "medium",
+      "scenario_id": "S05",
+      "ground_truth": {
+        "root_cause": "Poor radio channel conditions (SINR=-2dB, BLER=32%) for UE5 on DRB-2 cause RLC AM max retransmissions (32 attempts) at rlc_am_entity.cpp line 287, triggering RLC failure indication to RRC, DRB failure report to CU-CP, and bearer modification with reduced QoS",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "RLC",
+          "RRC",
+          "PHY",
+          "QOS",
+          "MAC",
+          "INTERFERENCE",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "MAC_HARQ_NACK_MAX_067",
+          "RLC_MAX_RETX_051",
+          "BEARER_SETUP_FAIL_121"
+        ],
+        "affected_ues": [
+          "UE5"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "bearer_mgmt",
+        "mac_harq_nack_max_067",
+        "rlc",
+        "rlc_max_retx_051",
+        "rrc",
+        "ue5",
+        "bearer_setup_fail_121",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q027",
+      "query": "Trace the complete chain of events from ran_cell.log to enodeb_rrc.log that led to the rlc max retransmission causing drb failure.",
+      "type": "multi_hop",
+      "difficulty": "hard",
+      "scenario_id": "S05",
+      "ground_truth": {
+        "root_cause": "Poor radio channel conditions (SINR=-2dB, BLER=32%) for UE5 on DRB-2 cause RLC AM max retransmissions (32 attempts) at rlc_am_entity.cpp line 287, triggering RLC failure indication to RRC, DRB failure report to CU-CP, and bearer modification with reduced QoS",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "RLC",
+          "RRC",
+          "PHY",
+          "QOS",
+          "MAC",
+          "INTERFERENCE",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "MAC_HARQ_NACK_MAX_067",
+          "RLC_MAX_RETX_051",
+          "BEARER_SETUP_FAIL_121"
+        ],
+        "affected_ues": [
+          "UE5"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "bearer_mgmt",
+        "mac_harq_nack_max_067",
+        "rlc",
+        "rlc_max_retx_051",
+        "rrc",
+        "ue5",
+        "bearer_setup_fail_121",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q028",
+      "query": "What events occurred during the rlc max retransmission causing drb failure incident and in what order?",
+      "type": "temporal",
+      "difficulty": "medium",
+      "scenario_id": "S05",
+      "ground_truth": {
+        "root_cause": "Poor radio channel conditions (SINR=-2dB, BLER=32%) for UE5 on DRB-2 cause RLC AM max retransmissions (32 attempts) at rlc_am_entity.cpp line 287, triggering RLC failure indication to RRC, DRB failure report to CU-CP, and bearer modification with reduced QoS",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "RLC",
+          "RRC",
+          "PHY",
+          "QOS",
+          "MAC",
+          "INTERFERENCE",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "MAC_HARQ_NACK_MAX_067",
+          "RLC_MAX_RETX_051",
+          "BEARER_SETUP_FAIL_121"
+        ],
+        "affected_ues": [
+          "UE5"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "bearer_mgmt",
+        "mac_harq_nack_max_067",
+        "rlc",
+        "rlc_max_retx_051",
+        "rrc",
+        "ue5",
+        "bearer_setup_fail_121",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q029",
+      "query": "What was the impact of the rlc max retransmission causing drb failure on user equipment and network services?",
+      "type": "impact_analysis",
+      "difficulty": "medium",
+      "scenario_id": "S05",
+      "ground_truth": {
+        "root_cause": "Poor radio channel conditions (SINR=-2dB, BLER=32%) for UE5 on DRB-2 cause RLC AM max retransmissions (32 attempts) at rlc_am_entity.cpp line 287, triggering RLC failure indication to RRC, DRB failure report to CU-CP, and bearer modification with reduced QoS",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "RLC",
+          "RRC",
+          "PHY",
+          "QOS",
+          "MAC",
+          "INTERFERENCE",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "MAC_HARQ_NACK_MAX_067",
+          "RLC_MAX_RETX_051",
+          "BEARER_SETUP_FAIL_121"
+        ],
+        "affected_ues": [
+          "UE5"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "bearer_mgmt",
+        "mac_harq_nack_max_067",
+        "rlc",
+        "rlc_max_retx_051",
+        "rrc",
+        "ue5",
+        "bearer_setup_fail_121",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q030",
+      "query": "What does error code MAC_HARQ_NACK_MAX_067 indicate and what caused it?",
+      "type": "error_code",
+      "difficulty": "easy",
+      "scenario_id": "S05",
+      "ground_truth": {
+        "root_cause": "Poor radio channel conditions (SINR=-2dB, BLER=32%) for UE5 on DRB-2 cause RLC AM max retransmissions (32 attempts) at rlc_am_entity.cpp line 287, triggering RLC failure indication to RRC, DRB failure report to CU-CP, and bearer modification with reduced QoS",
+        "relevant_files": [
+          "enodeb_rrc.log"
+        ],
+        "relevant_modules": [
+          "RLC",
+          "RRC",
+          "PHY",
+          "QOS",
+          "MAC",
+          "INTERFERENCE",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "MAC_HARQ_NACK_MAX_067",
+          "RLC_MAX_RETX_051",
+          "BEARER_SETUP_FAIL_121"
+        ],
+        "affected_ues": [
+          "UE5"
+        ],
+        "requires_multi_hop": false
+      },
+      "keywords": [
+        "bearer_mgmt",
+        "mac_harq_nack_max_067",
+        "rlc",
+        "rlc_max_retx_051",
+        "rrc",
+        "ue5",
+        "bearer_setup_fail_121",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q031",
+      "query": "What is the root cause of the failure affecting UE3?",
+      "type": "root_cause",
+      "difficulty": "medium",
+      "scenario_id": "S06",
+      "ground_truth": {
+        "root_cause": "Backhaul fiber link degradation (BER=1e-6, latency spike to 45ms) between CU-UP and UPF (10.0.2.50) causes GTP-U Echo Request timeout after 3 retries, declaring path failure for 28 active tunnels, triggering indirect forwarding and 3.2s service interruption for affected UEs",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log",
+          "cu_up_gtpu.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "GTP-U",
+          "PACKET_PROC",
+          "BACKHAUL",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "GTPU_PATH_FAIL_037",
+          "GTPU_TUNNEL_ERR_031"
+        ],
+        "affected_ues": [
+          "UE3",
+          "UE8",
+          "UE14",
+          "UE19",
+          "UE25"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "gtp-u",
+        "ue3",
+        "ue14",
+        "packet_proc",
+        "timeout",
+        "ue8",
+        "failure",
+        "gtpu_path_fail_037",
+        "gtpu_tunnel_err_031"
+      ]
+    },
+    {
+      "id": "Q032",
+      "query": "What error occurred in the GTP-U module and what were its downstream effects?",
+      "type": "failure_tracing",
+      "difficulty": "medium",
+      "scenario_id": "S06",
+      "ground_truth": {
+        "root_cause": "Backhaul fiber link degradation (BER=1e-6, latency spike to 45ms) between CU-UP and UPF (10.0.2.50) causes GTP-U Echo Request timeout after 3 retries, declaring path failure for 28 active tunnels, triggering indirect forwarding and 3.2s service interruption for affected UEs",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log",
+          "cu_up_gtpu.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "GTP-U",
+          "PACKET_PROC",
+          "BACKHAUL",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "GTPU_PATH_FAIL_037",
+          "GTPU_TUNNEL_ERR_031"
+        ],
+        "affected_ues": [
+          "UE3",
+          "UE8",
+          "UE14",
+          "UE19",
+          "UE25"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "gtp-u",
+        "ue3",
+        "ue14",
+        "packet_proc",
+        "timeout",
+        "ue8",
+        "failure",
+        "gtpu_path_fail_037",
+        "gtpu_tunnel_err_031"
+      ]
+    },
+    {
+      "id": "Q033",
+      "query": "Trace the complete chain of events from transport_sctp.log to cu_up_gtpu.log that led to the gtp-u path failure on backhaul.",
+      "type": "multi_hop",
+      "difficulty": "hard",
+      "scenario_id": "S06",
+      "ground_truth": {
+        "root_cause": "Backhaul fiber link degradation (BER=1e-6, latency spike to 45ms) between CU-UP and UPF (10.0.2.50) causes GTP-U Echo Request timeout after 3 retries, declaring path failure for 28 active tunnels, triggering indirect forwarding and 3.2s service interruption for affected UEs",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log",
+          "cu_up_gtpu.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "GTP-U",
+          "PACKET_PROC",
+          "BACKHAUL",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "GTPU_PATH_FAIL_037",
+          "GTPU_TUNNEL_ERR_031"
+        ],
+        "affected_ues": [
+          "UE3",
+          "UE8",
+          "UE14",
+          "UE19",
+          "UE25"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "gtp-u",
+        "ue3",
+        "ue14",
+        "packet_proc",
+        "timeout",
+        "ue8",
+        "failure",
+        "gtpu_path_fail_037",
+        "gtpu_tunnel_err_031"
+      ]
+    },
+    {
+      "id": "Q034",
+      "query": "What events occurred during the gtp-u path failure on backhaul incident and in what order?",
+      "type": "temporal",
+      "difficulty": "medium",
+      "scenario_id": "S06",
+      "ground_truth": {
+        "root_cause": "Backhaul fiber link degradation (BER=1e-6, latency spike to 45ms) between CU-UP and UPF (10.0.2.50) causes GTP-U Echo Request timeout after 3 retries, declaring path failure for 28 active tunnels, triggering indirect forwarding and 3.2s service interruption for affected UEs",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log",
+          "cu_up_gtpu.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "GTP-U",
+          "PACKET_PROC",
+          "BACKHAUL",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "GTPU_PATH_FAIL_037",
+          "GTPU_TUNNEL_ERR_031"
+        ],
+        "affected_ues": [
+          "UE3",
+          "UE8",
+          "UE14",
+          "UE19",
+          "UE25"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "gtp-u",
+        "ue3",
+        "ue14",
+        "packet_proc",
+        "timeout",
+        "ue8",
+        "failure",
+        "gtpu_path_fail_037",
+        "gtpu_tunnel_err_031"
+      ]
+    },
+    {
+      "id": "Q035",
+      "query": "What was the impact of the gtp-u path failure on backhaul on user equipment and network services?",
+      "type": "impact_analysis",
+      "difficulty": "medium",
+      "scenario_id": "S06",
+      "ground_truth": {
+        "root_cause": "Backhaul fiber link degradation (BER=1e-6, latency spike to 45ms) between CU-UP and UPF (10.0.2.50) causes GTP-U Echo Request timeout after 3 retries, declaring path failure for 28 active tunnels, triggering indirect forwarding and 3.2s service interruption for affected UEs",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log",
+          "cu_up_gtpu.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "GTP-U",
+          "PACKET_PROC",
+          "BACKHAUL",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "GTPU_PATH_FAIL_037",
+          "GTPU_TUNNEL_ERR_031"
+        ],
+        "affected_ues": [
+          "UE3",
+          "UE8",
+          "UE14",
+          "UE19",
+          "UE25"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "gtp-u",
+        "ue3",
+        "ue14",
+        "packet_proc",
+        "timeout",
+        "ue8",
+        "failure",
+        "gtpu_path_fail_037",
+        "gtpu_tunnel_err_031"
+      ]
+    },
+    {
+      "id": "Q036",
+      "query": "What does error code GTPU_PATH_FAIL_037 indicate and what caused it?",
+      "type": "error_code",
+      "difficulty": "easy",
+      "scenario_id": "S06",
+      "ground_truth": {
+        "root_cause": "Backhaul fiber link degradation (BER=1e-6, latency spike to 45ms) between CU-UP and UPF (10.0.2.50) causes GTP-U Echo Request timeout after 3 retries, declaring path failure for 28 active tunnels, triggering indirect forwarding and 3.2s service interruption for affected UEs",
+        "relevant_files": [
+          "cu_up_gtpu.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "GTP-U",
+          "PACKET_PROC",
+          "BACKHAUL",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "GTPU_PATH_FAIL_037",
+          "GTPU_TUNNEL_ERR_031"
+        ],
+        "affected_ues": [
+          "UE3",
+          "UE8",
+          "UE14",
+          "UE19",
+          "UE25"
+        ],
+        "requires_multi_hop": false
+      },
+      "keywords": [
+        "gtp-u",
+        "ue3",
+        "ue14",
+        "packet_proc",
+        "timeout",
+        "ue8",
+        "failure",
+        "gtpu_path_fail_037",
+        "gtpu_tunnel_err_031"
+      ]
+    },
+    {
+      "id": "Q037",
+      "query": "What is the root cause of the failure affecting UE31?",
+      "type": "root_cause",
+      "difficulty": "medium",
+      "scenario_id": "S07",
+      "ground_truth": {
+        "root_cause": "UE31 5G-AKA authentication failure at AUSF due to Sequence Number (SQN) out of synchronization between UE USIM and UDM database (delta=256, threshold=32), causing MAC verification failure in authentication vector, NAS rejection with cause #21 (synch-failure) and forced re-authentication after AUTS-based resynchronization",
+        "relevant_files": [
+          "core_nw_ausf.log",
+          "core_nw_udm.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "AUSF",
+          "AMF",
+          "UDM"
+        ],
+        "error_codes": [
+          "AMF_AUTH_FAIL_094"
+        ],
+        "affected_ues": [
+          "UE31"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "reject",
+        "amf",
+        "ausf",
+        "amf_auth_fail_094",
+        "ue31",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q038",
+      "query": "What error occurred in the AMF module and what were its downstream effects?",
+      "type": "failure_tracing",
+      "difficulty": "medium",
+      "scenario_id": "S07",
+      "ground_truth": {
+        "root_cause": "UE31 5G-AKA authentication failure at AUSF due to Sequence Number (SQN) out of synchronization between UE USIM and UDM database (delta=256, threshold=32), causing MAC verification failure in authentication vector, NAS rejection with cause #21 (synch-failure) and forced re-authentication after AUTS-based resynchronization",
+        "relevant_files": [
+          "core_nw_ausf.log",
+          "core_nw_udm.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "AUSF",
+          "AMF",
+          "UDM"
+        ],
+        "error_codes": [
+          "AMF_AUTH_FAIL_094"
+        ],
+        "affected_ues": [
+          "UE31"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "reject",
+        "amf",
+        "ausf",
+        "amf_auth_fail_094",
+        "ue31",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q039",
+      "query": "Trace the complete chain of events from core_nw_amf.log to core_nw_amf.log that led to the 5g-aka authentication failure.",
+      "type": "multi_hop",
+      "difficulty": "hard",
+      "scenario_id": "S07",
+      "ground_truth": {
+        "root_cause": "UE31 5G-AKA authentication failure at AUSF due to Sequence Number (SQN) out of synchronization between UE USIM and UDM database (delta=256, threshold=32), causing MAC verification failure in authentication vector, NAS rejection with cause #21 (synch-failure) and forced re-authentication after AUTS-based resynchronization",
+        "relevant_files": [
+          "core_nw_ausf.log",
+          "core_nw_udm.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "AUSF",
+          "AMF",
+          "UDM"
+        ],
+        "error_codes": [
+          "AMF_AUTH_FAIL_094"
+        ],
+        "affected_ues": [
+          "UE31"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "reject",
+        "amf",
+        "ausf",
+        "amf_auth_fail_094",
+        "ue31",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q040",
+      "query": "What events occurred during the 5g-aka authentication failure incident and in what order?",
+      "type": "temporal",
+      "difficulty": "medium",
+      "scenario_id": "S07",
+      "ground_truth": {
+        "root_cause": "UE31 5G-AKA authentication failure at AUSF due to Sequence Number (SQN) out of synchronization between UE USIM and UDM database (delta=256, threshold=32), causing MAC verification failure in authentication vector, NAS rejection with cause #21 (synch-failure) and forced re-authentication after AUTS-based resynchronization",
+        "relevant_files": [
+          "core_nw_ausf.log",
+          "core_nw_udm.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "AUSF",
+          "AMF",
+          "UDM"
+        ],
+        "error_codes": [
+          "AMF_AUTH_FAIL_094"
+        ],
+        "affected_ues": [
+          "UE31"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "reject",
+        "amf",
+        "ausf",
+        "amf_auth_fail_094",
+        "ue31",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q041",
+      "query": "What was the impact of the 5g-aka authentication failure on user equipment and network services?",
+      "type": "impact_analysis",
+      "difficulty": "medium",
+      "scenario_id": "S07",
+      "ground_truth": {
+        "root_cause": "UE31 5G-AKA authentication failure at AUSF due to Sequence Number (SQN) out of synchronization between UE USIM and UDM database (delta=256, threshold=32), causing MAC verification failure in authentication vector, NAS rejection with cause #21 (synch-failure) and forced re-authentication after AUTS-based resynchronization",
+        "relevant_files": [
+          "core_nw_ausf.log",
+          "core_nw_udm.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "AUSF",
+          "AMF",
+          "UDM"
+        ],
+        "error_codes": [
+          "AMF_AUTH_FAIL_094"
+        ],
+        "affected_ues": [
+          "UE31"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "reject",
+        "amf",
+        "ausf",
+        "amf_auth_fail_094",
+        "ue31",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q042",
+      "query": "What does error code AMF_AUTH_FAIL_094 indicate and what caused it?",
+      "type": "error_code",
+      "difficulty": "easy",
+      "scenario_id": "S07",
+      "ground_truth": {
+        "root_cause": "UE31 5G-AKA authentication failure at AUSF due to Sequence Number (SQN) out of synchronization between UE USIM and UDM database (delta=256, threshold=32), causing MAC verification failure in authentication vector, NAS rejection with cause #21 (synch-failure) and forced re-authentication after AUTS-based resynchronization",
+        "relevant_files": [
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "AUSF",
+          "AMF",
+          "UDM"
+        ],
+        "error_codes": [
+          "AMF_AUTH_FAIL_094"
+        ],
+        "affected_ues": [
+          "UE31"
+        ],
+        "requires_multi_hop": false
+      },
+      "keywords": [
+        "reject",
+        "amf",
+        "ausf",
+        "amf_auth_fail_094",
+        "ue31",
+        "failure"
+      ]
+    },
+    {
+      "id": "Q043",
+      "query": "What is the root cause of the failure affecting UE9?",
+      "type": "root_cause",
+      "difficulty": "medium",
+      "scenario_id": "S08",
+      "ground_truth": {
+        "root_cause": "Cell-12 DL PRB utilization reaches 95% with 87 active UEs, causing proportional fair scheduler to repeatedly skip low-CQI UEs (UE9, UE16, UE27) for 800ms+ resulting in BSR timer expiry, buffer overflow at MAC layer with 2.4MB data discarded, and application-level TCP retransmissions",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log"
+        ],
+        "relevant_modules": [
+          "MAC",
+          "POWER_CTRL",
+          "SCHEDULER",
+          "PACKET_PROC"
+        ],
+        "error_codes": [
+          "MAC_BSR_TIMEOUT_064",
+          "MAC_BSR_TIMEOUT_064",
+          "SCHED_DL_FAIL_131"
+        ],
+        "affected_ues": [
+          "UE9",
+          "UE16",
+          "UE27"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "ue27",
+        "mac",
+        "scheduler",
+        "ue16",
+        "mac_bsr_timeout_064",
+        "overflow",
+        "ue9",
+        "sched_dl_fail_131"
+      ]
+    },
+    {
+      "id": "Q044",
+      "query": "What error occurred in the MAC module and what were its downstream effects?",
+      "type": "failure_tracing",
+      "difficulty": "medium",
+      "scenario_id": "S08",
+      "ground_truth": {
+        "root_cause": "Cell-12 DL PRB utilization reaches 95% with 87 active UEs, causing proportional fair scheduler to repeatedly skip low-CQI UEs (UE9, UE16, UE27) for 800ms+ resulting in BSR timer expiry, buffer overflow at MAC layer with 2.4MB data discarded, and application-level TCP retransmissions",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log"
+        ],
+        "relevant_modules": [
+          "MAC",
+          "POWER_CTRL",
+          "SCHEDULER",
+          "PACKET_PROC"
+        ],
+        "error_codes": [
+          "MAC_BSR_TIMEOUT_064",
+          "MAC_BSR_TIMEOUT_064",
+          "SCHED_DL_FAIL_131"
+        ],
+        "affected_ues": [
+          "UE9",
+          "UE16",
+          "UE27"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "ue27",
+        "mac",
+        "scheduler",
+        "ue16",
+        "mac_bsr_timeout_064",
+        "overflow",
+        "ue9",
+        "sched_dl_fail_131"
+      ]
+    },
+    {
+      "id": "Q045",
+      "query": "Trace the complete chain of events from ran_cell.log to ran_cell.log that led to the dl scheduler starvation under load.",
+      "type": "multi_hop",
+      "difficulty": "hard",
+      "scenario_id": "S08",
+      "ground_truth": {
+        "root_cause": "Cell-12 DL PRB utilization reaches 95% with 87 active UEs, causing proportional fair scheduler to repeatedly skip low-CQI UEs (UE9, UE16, UE27) for 800ms+ resulting in BSR timer expiry, buffer overflow at MAC layer with 2.4MB data discarded, and application-level TCP retransmissions",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log"
+        ],
+        "relevant_modules": [
+          "MAC",
+          "POWER_CTRL",
+          "SCHEDULER",
+          "PACKET_PROC"
+        ],
+        "error_codes": [
+          "MAC_BSR_TIMEOUT_064",
+          "MAC_BSR_TIMEOUT_064",
+          "SCHED_DL_FAIL_131"
+        ],
+        "affected_ues": [
+          "UE9",
+          "UE16",
+          "UE27"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "ue27",
+        "mac",
+        "scheduler",
+        "ue16",
+        "mac_bsr_timeout_064",
+        "overflow",
+        "ue9",
+        "sched_dl_fail_131"
+      ]
+    },
+    {
+      "id": "Q046",
+      "query": "What events occurred during the dl scheduler starvation under load incident and in what order?",
+      "type": "temporal",
+      "difficulty": "medium",
+      "scenario_id": "S08",
+      "ground_truth": {
+        "root_cause": "Cell-12 DL PRB utilization reaches 95% with 87 active UEs, causing proportional fair scheduler to repeatedly skip low-CQI UEs (UE9, UE16, UE27) for 800ms+ resulting in BSR timer expiry, buffer overflow at MAC layer with 2.4MB data discarded, and application-level TCP retransmissions",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log"
+        ],
+        "relevant_modules": [
+          "MAC",
+          "POWER_CTRL",
+          "SCHEDULER",
+          "PACKET_PROC"
+        ],
+        "error_codes": [
+          "MAC_BSR_TIMEOUT_064",
+          "MAC_BSR_TIMEOUT_064",
+          "SCHED_DL_FAIL_131"
+        ],
+        "affected_ues": [
+          "UE9",
+          "UE16",
+          "UE27"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "ue27",
+        "mac",
+        "scheduler",
+        "ue16",
+        "mac_bsr_timeout_064",
+        "overflow",
+        "ue9",
+        "sched_dl_fail_131"
+      ]
+    },
+    {
+      "id": "Q047",
+      "query": "What was the impact of the dl scheduler starvation under load on user equipment and network services?",
+      "type": "impact_analysis",
+      "difficulty": "medium",
+      "scenario_id": "S08",
+      "ground_truth": {
+        "root_cause": "Cell-12 DL PRB utilization reaches 95% with 87 active UEs, causing proportional fair scheduler to repeatedly skip low-CQI UEs (UE9, UE16, UE27) for 800ms+ resulting in BSR timer expiry, buffer overflow at MAC layer with 2.4MB data discarded, and application-level TCP retransmissions",
+        "relevant_files": [
+          "ran_cell.log",
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log"
+        ],
+        "relevant_modules": [
+          "MAC",
+          "POWER_CTRL",
+          "SCHEDULER",
+          "PACKET_PROC"
+        ],
+        "error_codes": [
+          "MAC_BSR_TIMEOUT_064",
+          "MAC_BSR_TIMEOUT_064",
+          "SCHED_DL_FAIL_131"
+        ],
+        "affected_ues": [
+          "UE9",
+          "UE16",
+          "UE27"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "ue27",
+        "mac",
+        "scheduler",
+        "ue16",
+        "mac_bsr_timeout_064",
+        "overflow",
+        "ue9",
+        "sched_dl_fail_131"
+      ]
+    },
+    {
+      "id": "Q048",
+      "query": "What does error code MAC_BSR_TIMEOUT_064 indicate and what caused it?",
+      "type": "error_code",
+      "difficulty": "easy",
+      "scenario_id": "S08",
+      "ground_truth": {
+        "root_cause": "Cell-12 DL PRB utilization reaches 95% with 87 active UEs, causing proportional fair scheduler to repeatedly skip low-CQI UEs (UE9, UE16, UE27) for 800ms+ resulting in BSR timer expiry, buffer overflow at MAC layer with 2.4MB data discarded, and application-level TCP retransmissions",
+        "relevant_files": [
+          "enodeb_rrc.log"
+        ],
+        "relevant_modules": [
+          "MAC",
+          "POWER_CTRL",
+          "SCHEDULER",
+          "PACKET_PROC"
+        ],
+        "error_codes": [
+          "MAC_BSR_TIMEOUT_064",
+          "MAC_BSR_TIMEOUT_064",
+          "SCHED_DL_FAIL_131"
+        ],
+        "affected_ues": [
+          "UE9",
+          "UE16",
+          "UE27"
+        ],
+        "requires_multi_hop": false
+      },
+      "keywords": [
+        "ue27",
+        "mac",
+        "scheduler",
+        "ue16",
+        "mac_bsr_timeout_064",
+        "overflow",
+        "ue9",
+        "sched_dl_fail_131"
+      ]
+    },
+    {
+      "id": "Q049",
+      "query": "What is the root cause of the failure affecting UE2?",
+      "type": "root_cause",
+      "difficulty": "medium",
+      "scenario_id": "S09",
+      "ground_truth": {
+        "root_cause": "IPSec IKEv2 SA expiry on midhaul link between DU and CU (tunnel-id=47) due to rekeying failure (DPD timeout from CU side) causes encrypted data path disruption for 4.7s, affecting F1-U data plane for 18 UEs until tunnel re-establishment with new SA",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "cu_up_gtpu.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "GTP-U",
+          "IPSec",
+          "F1AP"
+        ],
+        "error_codes": [
+          "F1AP_MSG_DECODE_ERR_018"
+        ],
+        "affected_ues": [
+          "UE2",
+          "UE6",
+          "UE10",
+          "UE13",
+          "UE17"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "gtp-u",
+        "f1ap",
+        "ue10",
+        "ipsec",
+        "ue2",
+        "ue6",
+        "timeout",
+        "failure",
+        "f1ap_msg_decode_err_018"
+      ]
+    },
+    {
+      "id": "Q050",
+      "query": "What error occurred in the IPSec module and what were its downstream effects?",
+      "type": "failure_tracing",
+      "difficulty": "medium",
+      "scenario_id": "S09",
+      "ground_truth": {
+        "root_cause": "IPSec IKEv2 SA expiry on midhaul link between DU and CU (tunnel-id=47) due to rekeying failure (DPD timeout from CU side) causes encrypted data path disruption for 4.7s, affecting F1-U data plane for 18 UEs until tunnel re-establishment with new SA",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "cu_up_gtpu.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "GTP-U",
+          "IPSec",
+          "F1AP"
+        ],
+        "error_codes": [
+          "F1AP_MSG_DECODE_ERR_018"
+        ],
+        "affected_ues": [
+          "UE2",
+          "UE6",
+          "UE10",
+          "UE13",
+          "UE17"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "gtp-u",
+        "f1ap",
+        "ue10",
+        "ipsec",
+        "ue2",
+        "ue6",
+        "timeout",
+        "failure",
+        "f1ap_msg_decode_err_018"
+      ]
+    },
+    {
+      "id": "Q051",
+      "query": "Trace the complete chain of events from transport_sctp.log to cu_up_gtpu.log that led to the ipsec tunnel failure on midhaul.",
+      "type": "multi_hop",
+      "difficulty": "hard",
+      "scenario_id": "S09",
+      "ground_truth": {
+        "root_cause": "IPSec IKEv2 SA expiry on midhaul link between DU and CU (tunnel-id=47) due to rekeying failure (DPD timeout from CU side) causes encrypted data path disruption for 4.7s, affecting F1-U data plane for 18 UEs until tunnel re-establishment with new SA",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "cu_up_gtpu.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "GTP-U",
+          "IPSec",
+          "F1AP"
+        ],
+        "error_codes": [
+          "F1AP_MSG_DECODE_ERR_018"
+        ],
+        "affected_ues": [
+          "UE2",
+          "UE6",
+          "UE10",
+          "UE13",
+          "UE17"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "gtp-u",
+        "f1ap",
+        "ue10",
+        "ipsec",
+        "ue2",
+        "ue6",
+        "timeout",
+        "failure",
+        "f1ap_msg_decode_err_018"
+      ]
+    },
+    {
+      "id": "Q052",
+      "query": "What events occurred during the ipsec tunnel failure on midhaul incident and in what order?",
+      "type": "temporal",
+      "difficulty": "medium",
+      "scenario_id": "S09",
+      "ground_truth": {
+        "root_cause": "IPSec IKEv2 SA expiry on midhaul link between DU and CU (tunnel-id=47) due to rekeying failure (DPD timeout from CU side) causes encrypted data path disruption for 4.7s, affecting F1-U data plane for 18 UEs until tunnel re-establishment with new SA",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "cu_up_gtpu.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "GTP-U",
+          "IPSec",
+          "F1AP"
+        ],
+        "error_codes": [
+          "F1AP_MSG_DECODE_ERR_018"
+        ],
+        "affected_ues": [
+          "UE2",
+          "UE6",
+          "UE10",
+          "UE13",
+          "UE17"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "gtp-u",
+        "f1ap",
+        "ue10",
+        "ipsec",
+        "ue2",
+        "ue6",
+        "timeout",
+        "failure",
+        "f1ap_msg_decode_err_018"
+      ]
+    },
+    {
+      "id": "Q053",
+      "query": "What was the impact of the ipsec tunnel failure on midhaul on user equipment and network services?",
+      "type": "impact_analysis",
+      "difficulty": "medium",
+      "scenario_id": "S09",
+      "ground_truth": {
+        "root_cause": "IPSec IKEv2 SA expiry on midhaul link between DU and CU (tunnel-id=47) due to rekeying failure (DPD timeout from CU side) causes encrypted data path disruption for 4.7s, affecting F1-U data plane for 18 UEs until tunnel re-establishment with new SA",
+        "relevant_files": [
+          "cu_cp_f1ap.log",
+          "cu_up_gtpu.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "GTP-U",
+          "IPSec",
+          "F1AP"
+        ],
+        "error_codes": [
+          "F1AP_MSG_DECODE_ERR_018"
+        ],
+        "affected_ues": [
+          "UE2",
+          "UE6",
+          "UE10",
+          "UE13",
+          "UE17"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "gtp-u",
+        "f1ap",
+        "ue10",
+        "ipsec",
+        "ue2",
+        "ue6",
+        "timeout",
+        "failure",
+        "f1ap_msg_decode_err_018"
+      ]
+    },
+    {
+      "id": "Q054",
+      "query": "What does error code F1AP_MSG_DECODE_ERR_018 indicate and what caused it?",
+      "type": "error_code",
+      "difficulty": "easy",
+      "scenario_id": "S09",
+      "ground_truth": {
+        "root_cause": "IPSec IKEv2 SA expiry on midhaul link between DU and CU (tunnel-id=47) due to rekeying failure (DPD timeout from CU side) causes encrypted data path disruption for 4.7s, affecting F1-U data plane for 18 UEs until tunnel re-establishment with new SA",
+        "relevant_files": [
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "GTP-U",
+          "IPSec",
+          "F1AP"
+        ],
+        "error_codes": [
+          "F1AP_MSG_DECODE_ERR_018"
+        ],
+        "affected_ues": [
+          "UE2",
+          "UE6",
+          "UE10",
+          "UE13",
+          "UE17"
+        ],
+        "requires_multi_hop": false
+      },
+      "keywords": [
+        "gtp-u",
+        "f1ap",
+        "ue10",
+        "ipsec",
+        "ue2",
+        "ue6",
+        "timeout",
+        "failure",
+        "f1ap_msg_decode_err_018"
+      ]
+    },
+    {
+      "id": "Q055",
+      "query": "What is the root cause of the failure affecting UE40?",
+      "type": "root_cause",
+      "difficulty": "medium",
+      "scenario_id": "S10",
+      "ground_truth": {
+        "root_cause": "AMF processing overload (CPU 94%, message queue depth 2847) caused by simultaneous registration storm from 500+ UEs after cell outage recovery, resulting in NAS timer T3510 expiry for 127 UEs, registration failures, and AMF-initiated overload control with back-off timer=30s broadcast to gNBs",
+        "relevant_files": [
+          "ran_cell.log",
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "NGAP",
+          "CELL_MGMT"
+        ],
+        "error_codes": [
+          "AMF_REG_REJECT_091"
+        ],
+        "affected_ues": [
+          "UE40",
+          "UE41",
+          "UE42",
+          "UE43",
+          "UE44"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "amf_reg_reject_091",
+        "amf",
+        "ue41",
+        "ue42",
+        "failure",
+        "ue40"
+      ]
+    },
+    {
+      "id": "Q056",
+      "query": "What error occurred in the AMF module and what were its downstream effects?",
+      "type": "failure_tracing",
+      "difficulty": "medium",
+      "scenario_id": "S10",
+      "ground_truth": {
+        "root_cause": "AMF processing overload (CPU 94%, message queue depth 2847) caused by simultaneous registration storm from 500+ UEs after cell outage recovery, resulting in NAS timer T3510 expiry for 127 UEs, registration failures, and AMF-initiated overload control with back-off timer=30s broadcast to gNBs",
+        "relevant_files": [
+          "ran_cell.log",
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "NGAP",
+          "CELL_MGMT"
+        ],
+        "error_codes": [
+          "AMF_REG_REJECT_091"
+        ],
+        "affected_ues": [
+          "UE40",
+          "UE41",
+          "UE42",
+          "UE43",
+          "UE44"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "amf_reg_reject_091",
+        "amf",
+        "ue41",
+        "ue42",
+        "failure",
+        "ue40"
+      ]
+    },
+    {
+      "id": "Q057",
+      "query": "Trace the complete chain of events from core_nw_amf.log to cu_cp_f1ap.log that led to the amf overload causing registration delays.",
+      "type": "multi_hop",
+      "difficulty": "hard",
+      "scenario_id": "S10",
+      "ground_truth": {
+        "root_cause": "AMF processing overload (CPU 94%, message queue depth 2847) caused by simultaneous registration storm from 500+ UEs after cell outage recovery, resulting in NAS timer T3510 expiry for 127 UEs, registration failures, and AMF-initiated overload control with back-off timer=30s broadcast to gNBs",
+        "relevant_files": [
+          "ran_cell.log",
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "NGAP",
+          "CELL_MGMT"
+        ],
+        "error_codes": [
+          "AMF_REG_REJECT_091"
+        ],
+        "affected_ues": [
+          "UE40",
+          "UE41",
+          "UE42",
+          "UE43",
+          "UE44"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "amf_reg_reject_091",
+        "amf",
+        "ue41",
+        "ue42",
+        "failure",
+        "ue40"
+      ]
+    },
+    {
+      "id": "Q058",
+      "query": "What events occurred during the amf overload causing registration delays incident and in what order?",
+      "type": "temporal",
+      "difficulty": "medium",
+      "scenario_id": "S10",
+      "ground_truth": {
+        "root_cause": "AMF processing overload (CPU 94%, message queue depth 2847) caused by simultaneous registration storm from 500+ UEs after cell outage recovery, resulting in NAS timer T3510 expiry for 127 UEs, registration failures, and AMF-initiated overload control with back-off timer=30s broadcast to gNBs",
+        "relevant_files": [
+          "ran_cell.log",
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "NGAP",
+          "CELL_MGMT"
+        ],
+        "error_codes": [
+          "AMF_REG_REJECT_091"
+        ],
+        "affected_ues": [
+          "UE40",
+          "UE41",
+          "UE42",
+          "UE43",
+          "UE44"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "amf_reg_reject_091",
+        "amf",
+        "ue41",
+        "ue42",
+        "failure",
+        "ue40"
+      ]
+    },
+    {
+      "id": "Q059",
+      "query": "What was the impact of the amf overload causing registration delays on user equipment and network services?",
+      "type": "impact_analysis",
+      "difficulty": "medium",
+      "scenario_id": "S10",
+      "ground_truth": {
+        "root_cause": "AMF processing overload (CPU 94%, message queue depth 2847) caused by simultaneous registration storm from 500+ UEs after cell outage recovery, resulting in NAS timer T3510 expiry for 127 UEs, registration failures, and AMF-initiated overload control with back-off timer=30s broadcast to gNBs",
+        "relevant_files": [
+          "ran_cell.log",
+          "cu_cp_f1ap.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "NGAP",
+          "CELL_MGMT"
+        ],
+        "error_codes": [
+          "AMF_REG_REJECT_091"
+        ],
+        "affected_ues": [
+          "UE40",
+          "UE41",
+          "UE42",
+          "UE43",
+          "UE44"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "amf_reg_reject_091",
+        "amf",
+        "ue41",
+        "ue42",
+        "failure",
+        "ue40"
+      ]
+    },
+    {
+      "id": "Q060",
+      "query": "What does error code AMF_REG_REJECT_091 indicate and what caused it?",
+      "type": "error_code",
+      "difficulty": "easy",
+      "scenario_id": "S10",
+      "ground_truth": {
+        "root_cause": "AMF processing overload (CPU 94%, message queue depth 2847) caused by simultaneous registration storm from 500+ UEs after cell outage recovery, resulting in NAS timer T3510 expiry for 127 UEs, registration failures, and AMF-initiated overload control with back-off timer=30s broadcast to gNBs",
+        "relevant_files": [
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "AMF",
+          "NGAP",
+          "CELL_MGMT"
+        ],
+        "error_codes": [
+          "AMF_REG_REJECT_091"
+        ],
+        "affected_ues": [
+          "UE40",
+          "UE41",
+          "UE42",
+          "UE43",
+          "UE44"
+        ],
+        "requires_multi_hop": false
+      },
+      "keywords": [
+        "amf_reg_reject_091",
+        "amf",
+        "ue41",
+        "ue42",
+        "failure",
+        "ue40"
+      ]
+    },
+    {
+      "id": "Q061",
+      "query": "Which failures affected multiple UEs simultaneously and what was the common cause?",
+      "type": "cross_scenario",
+      "difficulty": "hard",
+      "scenario_id": "S02,S06,S08,S10",
+      "ground_truth": {
+        "root_cause": "SCTP transport failure (S02), GTP-U path failure (S06), scheduler starvation (S08), and AMF overload (S10) all affected multiple UEs. Common pattern: infrastructure-level failures cascade to multiple UE contexts.",
+        "relevant_files": [
+          "transport_sctp.log",
+          "cu_cp_f1ap.log",
+          "cu_up_gtpu.log",
+          "core_nw_amf.log",
+          "ran_cell.log"
+        ],
+        "relevant_modules": [
+          "SCTP",
+          "F1AP",
+          "GTP-U",
+          "AMF",
+          "SCHEDULER"
+        ],
+        "error_codes": [
+          "SCTP_ASSOC_FAIL_081",
+          "GTPU_PATH_FAIL_037",
+          "SCHED_DL_FAIL_131",
+          "AMF_REG_REJECT_091"
+        ],
+        "affected_ues": [
+          "UE1-UE5",
+          "multiple"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "sctp",
+        "gtp-u",
+        "path failure",
+        "overload",
+        "multiple ues",
+        "transport"
+      ]
+    },
+    {
+      "id": "Q062",
+      "query": "Compare the transport-layer failures: how does SCTP association failure differ from GTP-U path failure in terms of impact?",
+      "type": "cross_scenario",
+      "difficulty": "hard",
+      "scenario_id": "S02,S06",
+      "ground_truth": {
+        "root_cause": "SCTP failure (S02) affects control plane (F1AP signaling) causing immediate UE context release for all UEs on that link (45 UEs). GTP-U path failure (S06) affects user plane (data forwarding) causing data buffering/loss for active data sessions (28 tunnels) but control plane remains intact allowing recovery via path switch.",
+        "relevant_files": [
+          "transport_sctp.log",
+          "cu_cp_f1ap.log",
+          "cu_up_gtpu.log",
+          "core_nw_amf.log"
+        ],
+        "relevant_modules": [
+          "SCTP",
+          "GTP-U",
+          "F1AP",
+          "BEARER_MGMT"
+        ],
+        "error_codes": [
+          "SCTP_ASSOC_FAIL_081",
+          "GTPU_PATH_FAIL_037"
+        ],
+        "affected_ues": [
+          "UE1-UE5",
+          "UE3,UE8,UE14,UE19,UE25"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "sctp",
+        "gtp-u",
+        "control plane",
+        "user plane",
+        "impact",
+        "45 ues",
+        "28 tunnels"
+      ]
+    },
+    {
+      "id": "Q063",
+      "query": "What are all the scenarios where packet loss or data loss occurred and what were the root causes?",
+      "type": "cross_scenario",
+      "difficulty": "hard",
+      "scenario_id": "S01,S03,S06",
+      "ground_truth": {
+        "root_cause": "Packet/data loss occurred in: (1) S01 - 23 packets dropped due to GTP-U tunnel teardown after RRC reconfig failure; (2) S03 - 847 PDCP SDUs lost during RLF from failed handover; (3) S06 - buffered packets during 3.2s GTP-U path interruption. Common pattern: control plane failures propagate to user plane data loss.",
+        "relevant_files": [
+          "cu_up_gtpu.log",
+          "enodeb_rrc.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "GTP-U",
+          "PACKET_PROC",
+          "PDCP",
+          "RRC"
+        ],
+        "error_codes": [
+          "GTPU_TUNNEL_ERR_031",
+          "PDCP_SN_OVERFLOW_047",
+          "GTPU_PATH_FAIL_037"
+        ],
+        "affected_ues": [
+          "UE7",
+          "UE11",
+          "UE3,UE8,UE14,UE19,UE25"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "packet loss",
+        "data loss",
+        "forward jump",
+        "pdcp",
+        "gtp-u",
+        "tunnel"
+      ]
+    },
+    {
+      "id": "Q064",
+      "query": "Did any UE recover successfully after a failure, and if so, how long did the service interruption last?",
+      "type": "cross_scenario",
+      "difficulty": "medium",
+      "scenario_id": "S03,S06,S07,S09",
+      "ground_truth": {
+        "root_cause": "Successful recoveries: (1) UE11 (S03) - RRC re-establishment after RLF, interruption=2.3s; (2) UEs in S06 - service resumed after backhaul failover, interruption=3.2s; (3) UE31 (S07) - re-authentication after SQN resync, delay~1s; (4) UEs in S09 - tunnel re-established after IPSec SA renegotiation, interruption=4.7s.",
+        "relevant_files": [
+          "enodeb_rrc.log",
+          "cu_up_gtpu.log",
+          "core_nw_amf.log",
+          "transport_sctp.log"
+        ],
+        "relevant_modules": [
+          "RRC",
+          "GTP-U",
+          "AMF",
+          "AUSF",
+          "IPSec"
+        ],
+        "error_codes": [],
+        "affected_ues": [
+          "UE11",
+          "UE31",
+          "multiple"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "recovery",
+        "re-establishment",
+        "interruption",
+        "restored",
+        "resumed"
+      ]
+    },
+    {
+      "id": "Q065",
+      "query": "Was the UE7 failure related to the SCTP transport failure, or were they independent events?",
+      "type": "contrastive",
+      "difficulty": "medium",
+      "scenario_id": "S01,S02",
+      "ground_truth": {
+        "root_cause": "Independent events. UE7 failure (S01) was caused by RRC Reconfiguration failure code 4 due to invalid measurement config - a radio-layer issue specific to UE7. SCTP transport failure (S02) was a transport-layer issue (heartbeat timeout) affecting all 45 UEs on that SCTP association. Different root causes, different affected UEs, different network layers.",
+        "relevant_files": [
+          "enodeb_rrc.log",
+          "transport_sctp.log",
+          "cu_cp_f1ap.log"
+        ],
+        "relevant_modules": [
+          "RRC",
+          "SCTP",
+          "F1AP",
+          "UE_CONTEXT"
+        ],
+        "error_codes": [
+          "RRC_RECONFIG_FAIL_004",
+          "SCTP_ASSOC_FAIL_081"
+        ],
+        "affected_ues": [
+          "UE7",
+          "UE1-UE5"
+        ],
+        "requires_multi_hop": true
+      },
+      "keywords": [
+        "independent",
+        "rrc",
+        "sctp",
+        "transport",
+        "radio",
+        "ue7"
+      ]
+    }
+  ]
+}

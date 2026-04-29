@@ -459,6 +459,73 @@ Question: {question}"""
             "confidence_trajectory": [confidence],
         }
 
+    def analyze_dense_rerank(self, query: str) -> Dict[str, Any]:
+        """
+        Dense + cross-encoder reranking, single pass (no iteration, no BM25).
+
+        Isolates the contribution of cross-encoder reranking from the
+        contribution of iterative refinement.
+        """
+        if not self._indexed:
+            raise RuntimeError("No logs indexed.")
+
+        start = time.time()
+
+        # Stage 1: dense-only candidate pool (no BM25)
+        candidates = self.retriever.retrieve_vector_only(query, top_k=max(20, self.top_k * 3))
+        if not candidates:
+            return {
+                "root_cause": "", "severity": "", "confidence": 0.0,
+                "supporting_logs": [], "reasoning_steps": [], "retrieval_scores": [],
+                "iterations": [{"iteration": 1, "confidence": 0.0}],
+                "best_iteration": 1, "converged": True, "total_iterations": 1,
+                "full_analysis": "", "latency_seconds": time.time() - start,
+                "confidence_trajectory": [0.0],
+            }
+
+        # Stage 2: cross-encoder reranking
+        import numpy as np
+        pairs = [(query, sd.content) for sd in candidates]
+        ce_raw = self.retriever.reranker.predict(pairs)
+        ce_scores = 1.0 / (1.0 + np.exp(-np.array(ce_raw)))
+        for sd, ce_score in zip(candidates, ce_scores):
+            sd.reranker_score = float(ce_score)
+            sd.final_score = float(ce_score)
+        candidates.sort(key=lambda x: x.final_score, reverse=True)
+        scored_docs = candidates[:self.top_k]
+
+        context_text = self.retriever.format_retrieved(scored_docs)
+
+        chain = self.ANALYSIS_PROMPT | self.llm | StrOutputParser()
+        analysis = chain.invoke({
+            "context": context_text,
+            "question": query,
+            "memory_context": "No prior incidents.",
+            "iteration": 1,
+            "max_iterations": 1,
+            "previous_findings": "",
+        })
+
+        confidence = self._compute_confidence(analysis, scored_docs, "")
+        parsed = self._parse_analysis(analysis)
+        latency = time.time() - start
+
+        return {
+            "root_cause": parsed.get("root_cause", ""),
+            "severity": parsed.get("severity", ""),
+            "confidence": confidence,
+            "supporting_logs": [f"[{sd.metadata.get('source', '')}] {sd.content}" for sd in scored_docs],
+            "reasoning_steps": parsed.get("reasoning_steps", []),
+            "retrieval_scores": [sd.final_score for sd in scored_docs],
+            "iterations": [{"iteration": 1, "confidence": confidence}],
+            "best_iteration": 1,
+            "converged": True,
+            "total_iterations": 1,
+            "full_analysis": analysis,
+            "latency_seconds": latency,
+            "confidence_trajectory": [confidence],
+        }
+
     def analyze_fixed_iterative(self, query: str, num_iterations: int = 3) -> Dict[str, Any]:
         """
         Fixed-iteration RAG (iterates N times regardless of confidence).

@@ -1,0 +1,49 @@
+method,query,judge_correct,keyword_accuracy,confidence
+Baseline,Why did UE4 fail?,1,0.5,0.6434073394435906
+Baseline,Summarize the failure scenario in this session.,0,0.6,0.5964986894117177
+Baseline,What is the root cause of the incident?,0,0.0,0.5723568523588168
+Baseline,What caused the RRC reconfiguration failure?,0,0.25,0.688376517947538
+Baseline,Which source file and line reported the critical error?,0,0.5,0.6817143634960784
+Baseline,What error code was reported for the RRC failure?,0,0.5,0.7357686808402127
+Baseline,What caused the UE context release?,0,0.5,0.7328090722395323
+Baseline,What event led the CU-CP to trigger UE release?,0,0.8,0.6905528653008071
+Baseline,Why were packets lost for UE4?,0,1.0,0.6455107748562784
+Baseline,What chain of events led to packet loss after registration?,0,0.8,0.59510156353043
+Baseline,What happened around 18:34:08?,0,0.25,0.5581007609290191
+Baseline,Did UE1 experience the same failure as UE4?,0,0.75,0.64450072141703
+Dense+Rerank,Why did UE4 fail?,0,0.5,0.6909200004301964
+Dense+Rerank,Summarize the failure scenario in this session.,0,0.6,0.6000976850668394
+Dense+Rerank,What is the root cause of the incident?,0,0.5,0.6000037086518205
+Dense+Rerank,What caused the RRC reconfiguration failure?,0,0.5,0.6072201254864922
+Dense+Rerank,Which source file and line reported the critical error?,0,1.0,0.6002223606104963
+Dense+Rerank,What error code was reported for the RRC failure?,0,0.5,0.7814758805558085
+Dense+Rerank,What caused the UE context release?,0,0.5,0.7665467336773871
+Dense+Rerank,What event led the CU-CP to trigger UE release?,0,0.6,0.6961055121617391
+Dense+Rerank,Why were packets lost for UE4?,0,1.0,0.6521866071387193
+Dense+Rerank,What chain of events led to packet loss after registration?,0,0.6,0.6000505550054186
+Dense+Rerank,What happened around 18:34:08?,0,0.0,0.6693144775927066
+Dense+Rerank,Did UE1 experience the same failure as UE4?,0,0.75,0.7217437822371721
+FixedIterative,Why did UE4 fail?,0,0.5,0.8142946216232299
+FixedIterative,Summarize the failure scenario in this session.,0,0.0,0.0
+FixedIterative,What is the root cause of the incident?,0,0.0,0.0
+FixedIterative,What caused the RRC reconfiguration failure?,0,0.0,0.0
+FixedIterative,Which source file and line reported the critical error?,0,0.0,0.0
+FixedIterative,What error code was reported for the RRC failure?,0,0.0,0.0
+FixedIterative,What caused the UE context release?,0,0.0,0.0
+FixedIterative,What event led the CU-CP to trigger UE release?,0,0.0,0.0
+FixedIterative,Why were packets lost for UE4?,0,0.0,0.0
+FixedIterative,What chain of events led to packet loss after registration?,0,0.0,0.0
+FixedIterative,What happened around 18:34:08?,0,0.0,0.0
+FixedIterative,Did UE1 experience the same failure as UE4?,0,0.0,0.0
+Adaptive,Why did UE4 fail?,0,0.0,0.0
+Adaptive,Summarize the failure scenario in this session.,0,0.0,0.0
+Adaptive,What is the root cause of the incident?,0,0.0,0.0
+Adaptive,What caused the RRC reconfiguration failure?,0,0.0,0.0
+Adaptive,Which source file and line reported the critical error?,0,0.0,0.0
+Adaptive,What error code was reported for the RRC failure?,0,0.0,0.0
+Adaptive,What caused the UE context release?,0,0.0,0.0
+Adaptive,What event led the CU-CP to trigger UE release?,0,0.0,0.0
+Adaptive,Why were packets lost for UE4?,0,0.0,0.0
+Adaptive,What chain of events led to packet loss after registration?,0,0.0,0.0
+Adaptive,What happened around 18:34:08?,0,0.0,0.0
+Adaptive,Did UE1 experience the same failure as UE4?,0,0.0,0.0

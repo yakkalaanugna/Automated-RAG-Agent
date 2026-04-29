@@ -1,0 +1,5 @@
+Method,Precision@K,Recall@K,Root Cause Accuracy,Iterations,Latency (s),Final Confidence
+Adaptive,0.0,0.0,0.0,1.0,1.7017,0.0
+Baseline,0.8472,0.8611,0.5375,1.0,4.59,0.6487
+Dense+Rerank,0.875,0.9028,0.5875,1.0,7.4583,0.6655
+FixedIterative,0.0833,0.0556,0.0417,1.1667,3.4017,0.0679
