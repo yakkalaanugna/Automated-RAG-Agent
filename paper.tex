@@ -42,26 +42,38 @@
 % ═══════════════════════════════════════════════════════════════════════════════
 
 \begin{abstract}
-Standard RAG evaluation assumes that improving retrieval quality
-directly improves end-task accuracy---an assumption we show fails
-for multi-hop reasoning.
-We identify the \emph{retrieval--reasoning gap}: retrieval-side
-metric gains do not transfer to reasoning accuracy when the
-language model is held constant.
-Using a six-configuration ablation on 65 multi-hop queries
-(synthetic telecom logs, 1{,}115 entries), we find Precision@K
-varies by 0.24 ($p{<}0.001$) while root-cause accuracy remains
-statistically flat ($\Delta{=}0.05$, $p{=}0.08$, n.s.;
-Pearson $r{=}0.244$).
-A multi-LLM comparison (8B--70B) with fixed retrieval confirms
-reasoning is independently bounded by model capability.
-We propose a composite metric (semantic similarity + ROUGE-L +
-structured scoring) that captures diagnostic quality beyond
-keyword overlap ($r{=}0.849$ with semantic evaluation).
-These findings generalize beyond text-only pipelines: any
-multimodal retrieval system that assembles heterogeneous evidence
-before generation faces the same structural gap between
-retrieval and reasoning.
+Typical evaluations conducted using RAG evaluate the retrieval
+itself and infer that any improvements in retrieval will provide
+an improvement in the performance of the end-use task; however,
+we have demonstrated this to be incorrect for multi-hop reasoning
+tasks.
+Specifically, we have established the \emph{retrieval--reasoning gap}
+that exists between these two components: improvements made in
+metrics on the retrieval side do not correlate with improved
+accuracy of reasoning performance when the language model is fixed.
+To investigate this further, an ablation study with six
+configurations on a set of 65 multi-hop queries created from
+synthetic telecom logs spanning a total of 1{,}115 records has
+been performed.
+Within this analysis, we found that the Precision@K values for
+this ablation set would vary by an average of 0.24 ($p{<}0.001$),
+but that the root-cause accuracy for the same dataset had no
+statistically significant mean change ($\Delta{=}0.05$, $p{=}0.08$,
+n.s.; Pearson $r{=}0.244$).
+Additionally, we conducted experiments using multiple variants of
+the same LLM (8--70 billion parameters) and confirmed that while
+retrieval is impacted by model capability, the accuracy of
+reasoning remains constant across configurations once retrieval
+has been set to a particular value.
+To assess the diagnostics of our models against one another, we
+constructed a composite metric for evaluating performance based on
+semantic similarity, ROUGE-L, and structured scoring to capture
+the diagnostic capabilities of our model going beyond standard
+word overlap ratios ($r{=}0.849$ with semantic evaluation).
+Our data do generalize to multimodal pipelines; any system that
+uses heterogeneously assembled data as inputs to a generative
+process after retrieving relevant evidence will have the same
+structural gap issues related to retrieval and reasoning.
 \end{abstract}
 
 % ═══════════════════════════════════════════════════════════════════════════════
@@ -70,79 +82,90 @@ retrieval and reasoning.
 
 \section{Introduction}
 
-Evaluation of retrieval-augmented generation (RAG) systems
-\citep{lewis2020rag,gao2023ragsurvey} typically reports two metric
-families side by side: retrieval quality (Precision@K, Recall@K, nDCG)
-and end-task quality (answer accuracy, F1).
-The implicit assumption is that improving retrieval improves the
-end-task.
-For multi-hop RAG---where evidence must be assembled from multiple
-sources before a language model reasons over it---this assumption is
-load-bearing yet under-examined.
-This work challenges that core assumption with controlled empirical
-evidence: improving retrieval alone is insufficient for multi-hop
-reasoning when the reader model is fixed.
+The Retrieval-Augmented Generation (RAG) systems
+\citep{lewis2020rag,gao2023ragsurvey} are evaluated according to
+two families of metrics: retrieval quality (Precision@K, Recall@K,
+nDCG) and end-task quality (accuracy of answer, F1).
+Implicitly, we assume that improvements to retrieval lead to
+improvements to the end-task.
+The assumption of correlation for multi-hop retrieval-augmented
+generation is an important but under-studied assumption since
+multi-hop RAG requires the assembly of evidence from multiple
+sources prior to the reasoning of multiple associations by an LLM.
 
-This paper presents the \textbf{retrieval--reasoning gap}: the
-observation that improvements in retrieval-side metrics do not
-translate to improvements in reasoning accuracy, and that this
-gap is a structural property of multi-hop RAG rather than an artifact
-of dataset size or domain.
+In this paper, we challenge our core assumption and back it with
+controlled empirical evidence that shows that improving retrieval
+on its own can be insufficient as the reader model for multi-hop
+is constrained at all times.
 
-Our experimental design isolates retrieval from reasoning through
-three mechanisms:
+We present the \textbf{retrieval--reasoning gap}: an observation
+that improvements to retrieval-side metrics do not translate to
+improvements in the accuracy of reasoning, and that the
+retrieval--reasoning gap is a structural property of multi-hop
+retrieval-augmented generation and not a function of the size or
+type of dataset being evaluated.
+
+To isolate retrieval from reasoning in our experiments, we use
+three approaches:
 \begin{enumerate}[nosep]
-    \item A \textbf{six-configuration ablation study} that varies the
+    \item An \textbf{ablation study using 6 configurations} of the
     retrieval pipeline ($\pm$\,BM25, $\pm$\,cross-encoder reranking,
-    $\pm$\,iterative refinement) while holding the LLM constant
+    $\pm$\,iterative refinement) with the LLM model held constant
     (Section~\ref{sec:ablation}).
-    \item A \textbf{multi-LLM comparison} that fixes retrieval and
-    varies only the reasoning model across four architectures spanning
-    8B--70B parameters (Section~\ref{sec:multi-llm}).
-    \item \textbf{Improved evaluation metrics}---semantic similarity,
-    structured scoring, composite metric---that capture reasoning
-    quality beyond keyword overlap (Section~\ref{sec:metrics-result}).
+    \item A \textbf{multi-LLM comparison} with fixed retrieval and
+    only changing the reasoning model across four unique architectures
+    of 8B--70B parameters (Section~\ref{sec:multi-llm}).
+    \item \textbf{New evaluation metrics}---semantic similarity,
+    structured scoring, composite metric---that assess reasoning
+    quality beyond the degree of keyword overlap
+    (Section~\ref{sec:metrics-result}).
 \end{enumerate}
 
-We evaluate on a synthetic telecom log corpus (1{,}115 records, 10
-log files, 10 failure scenarios) with 65 evaluation queries requiring
-multi-hop cross-file reasoning.
-The telecom setting is a controlled testbed; the evaluation phenomena
-we surface---metric disagreement, failure-mode independence, and
-inadequacy of aggregate scores---generalize to any RAG system
-performing multi-hop evidence assembly followed by LLM reasoning.
+We performed our evaluation on a synthetic telecom log dataset
+consisting of 1{,}115 records, 10 log files and 10 distinct failure
+scenarios, and 65 evaluation queries requiring multi-hop reasoning
+across files.
+While the telecom domain serves as a controlled testbed, the
+evaluation phenomena we discuss---including metric disagreements,
+independence of failure modes, and inadequacy of aggregate
+scores---all apply at a general level for any RAG system performing
+multi-hop evidence assembly followed by LLM-based reasoning.
 
-Although our experiments are text-based, the retrieval--reasoning gap
-is not modality-specific.
-Multimodal retrieval systems that integrate image+text, video+text,
-or structured data face the same structural challenge: retrieving
-relevant heterogeneous evidence does not guarantee that a downstream
-multimodal generation model will reason correctly over it.
-Our evaluation framework---decomposing retrieval from reasoning---applies
-directly to such systems.
+Our experiments were conducted in a text-based modality context, but
+the retrieval--reasoning gap is not modality-dependent.
+Multimodal retrieval systems that retrieve heterogeneous evidence
+across multiple modalities (image+text, video+text, structured data)
+face the same fundamental challenge in that retrieval of relevant
+support materials does not necessitate downstream multimodal
+generator(s) reasoning correctly with that association.
+Thus, our proposed evaluation framework of decomposing retrieval
+from reasoning applies directly to these types of multimodal systems.
 
 \paragraph{Contributions.}
 \begin{enumerate}[nosep]
-    \item \textbf{Identifying the retrieval--reasoning gap as a
-    structural property.}
-    Across six ablation configurations, Precision@K varies by 0.24
-    ($p{<}0.001$) while root-cause accuracy varies by only 0.05
-    ($p{=}0.08$, n.s.; Pearson $r{=}0.244$).
-    Multi-LLM comparison with fixed retrieval shows reasoning
-    accuracy gaps of up to 0.103 attributable to model capability
-    alone.
-    \item \textbf{A decomposition protocol for multi-hop RAG evaluation.}
+    \item \textbf{Identification that the retrieval--reasoning gap is
+    a structural property.}
+    Across the six ablation configurations, Precision@K showed a 0.24
+    variation ($p{<}0.001$) while the accuracy associated with the
+    root cause showed only a 0.05 change ($p{=}0.08$, n.s.;
+    Pearson $r{=}0.244$).
+    In addition, the multi-LLM comparison with fixed retrieval
+    demonstrates up to a 0.103 gap in reasoning accuracy attributable
+    solely to the capability of the model.
+    \item \textbf{Decomposition protocol for multi-hop RAG evaluation.}
     We propose: (a)~ablation with fixed LLM, (b)~model comparison
-    with fixed retrieval, (c)~per-query regime classification
-    (high/low retrieval $\times$ correct/incorrect reasoning)---a
-    framework applicable to both text-only and multimodal pipelines.
+    with fixed retrieval, and (c)~per-query regime classification of
+    high/low retrieval $\times$ correct/incorrect reasoning---a
+    framework applicable to both text-only and multimodal approaches.
     \item \textbf{Composite evaluation metric.}
-    We show keyword overlap is a noisy proxy and propose a composite
-    score (semantic similarity + ROUGE-L + structured scoring) that
-    better captures diagnostic quality.
+    We show that the degree of keyword overlap is a noisy measure of
+    reasoning quality and propose a composite score (semantic
+    similarity + ROUGE-L + structured scoring) for capturing
+    diagnostic quality to a greater degree.
     \item \textbf{Dataset release.}
-    Synthetic telecom log dataset: 1{,}115 entries, 10 failure
-    scenarios, 65 annotated queries with ground-truth root causes.
+    Synthetic telecom log dataset: 1{,}115 records across 10 failure
+    scenarios and 65 annotated queries with associated ground-truth
+    root causes.
 \end{enumerate}
 
 % ═══════════════════════════════════════════════════════════════════════════════
@@ -153,40 +176,47 @@ directly to such systems.
 \label{sec:related}
 
 \paragraph{Retrieval-Augmented Generation.}
-\citet{lewis2020rag} showed that augmenting LMs with retrieved
-passages yields large gains on knowledge-intensive tasks;
-\citet{gao2023ragsurvey} survey extensions to summarization, code
-generation, and domain-specific applications.
-Most RAG systems follow a single-pass architecture insufficient for
-multi-file log analysis.
+Retrieval-Augmented Generation (RAG), with \citet{lewis2020rag}
+providing empirical evidence that extending LMs with retrieved
+passages provides large benefits with knowledge-intensive tasks, and
+\citet{gao2023ragsurvey} summarizing extensions to various
+summarization, code generation, and domain-specific applications.
+However, the majority of RAGs utilize a single-pass architecture,
+inadequate for analyzing multi-file log files.
 
 \paragraph{Iterative and Multi-Step Retrieval.}
-Self-RAG \citep{asai2024selfrag} enables self-reflective retrieval;
-Active RAG \citep{jiang2023activerar} uses active learning signals;
-query rewriting \citep{wang2023queryrewrite} reformulates queries
-after initial passes.
-These approaches lack principled stopping criteria.
-Our adaptive confidence-gated iteration addresses this, and our
-ablation quantifies the contribution of iteration to both retrieval
-and reasoning.
+The use of self-reflective retrieval with Self-RAG
+\citep{asai2024selfrag}, the ability to utilize active learning
+signals in Active RAG \citep{jiang2023activerar}, and the use of
+query rewriting to reformulate queries after multiple passes
+\citep{wang2023queryrewrite} have not provided stop criteria.
+Our work addresses the lack of principled stop criteria through our
+adaptive confidence-gated iteration, and our ablation study
+quantifies the benefit of iteration for both retrieval and reasoning.
 
 \paragraph{Hybrid Retrieval and Cross-Encoder Reranking.}
-Fusing BM25 \citep{robertson2009bm25} and bi-encoder retrieval
-\citep{reimers2019sentencebert} is standard practice.
-Cross-encoder rerankers \citep{nogueira2019passage} substantially
-improve precision; BEIR \citep{thakur2021beir} confirms zero-shot
+Using BM25 \citep{robertson2009bm25} and a bi-encoder retrieval
+system \citep{reimers2019sentencebert} is considered a standard
+practice in the RAG community.
+Studies show that using a cross-encoder reranker
+\citep{nogueira2019passage} significantly improves the precision of
+retrieved records and BEIR \citep{thakur2021beir} has confirmed the
+ability of a cross-encoder reranker to provide zero-shot
 generalization.
-We show that reranking improves \emph{retrieval} precision but does
-not proportionally improve \emph{reasoning} accuracy.
+Our analysis shows that while reranking does provide substantial
+benefits to precision of retrieval, it does not proportionally affect
+the accuracy of reasoning.
 
 \paragraph{RAG Evaluation.}
-RAGAS \citep{es2024ragas} and ARES \citep{saad2024ares} decompose
-RAG quality into context-relevance, faithfulness, and answer-relevance.
-Lost-in-the-middle \citep{liu2024lostmiddle} shows LLMs underuse
-mid-context evidence---invisible to Precision@K.
-We complement this literature by demonstrating that retrieval and
-end-task metrics move independently, and that neither alone nor
-together reveals which failure mode is responsible.
+The RAGAS \citep{es2024ragas} and ARES \citep{saad2024ares}
+evaluation frameworks decompose the quality of RAGs into three parts:
+context relevance, faithfulness to the source, and relevance of the
+answer.
+Our work contributes to this literature by illustrating that
+retrieval and end-task metrics move independently of one another, and
+neither metric alone or together can provide evidence as to which of
+the reported failure modes was responsible for the decline in
+performance.
 
 % ═══════════════════════════════════════════════════════════════════════════════
 % 3. METHOD
@@ -197,36 +227,47 @@ together reveals which failure mode is responsible.
 
 \subsection{Pipeline Architecture}
 
-The system implements a four-stage iterative loop:
-\emph{Hybrid Retrieval $\to$ Cross-Encoder Reranking $\to$ LLM
-Reasoning $\to$ Confidence-Gated Iteration}.
+The four-stage iterative feedback loop consists of:
+\emph{Hybrid Candidate Generation $\to$ Cross-Encoder Reranking
+$\to$ LLM Analysis $\to$ Confidence-Gated Iteration}.
 
 \paragraph{Stage 1: Hybrid Candidate Generation.}
-Dense retrieval (\texttt{all-MiniLM-L6-v2}, 384-dim) indexed in
-ChromaDB fuses with BM25 ($k_1{=}1.5$, $b{=}0.75$):
+The first stage is a hybrid candidate generation system that uses a
+dense retriever (\texttt{all-MiniLM-L6-v2} indexed in ChromaDB using
+384-dimensional embeddings) and BM25 (with parameters $k_1{=}1.5$
+and $b{=}0.75$) in a weighted manner:
 $s_{\text{hybrid}}(d) = 0.7 \cdot s_{\text{dense}}(d) + 0.3 \cdot
-s_{\text{BM25}}(d)$.
-Over-fetches $N{=}20$--$30$ candidates for reranking.
+s_{\text{BM25}}(d)$,
+resulting in 20 to 30 candidates for the second stage of
+cross-encoder reranking.
 
 \paragraph{Stage 2: Cross-Encoder Reranking.}
-\texttt{ms-marco-MiniLM-L-6-v2} (22M params) rescores each
-(query, document) pair via joint cross-attention.
-The cross-encoder score is the \emph{sole} ranking signal,
-discarding hybrid scores to avoid reintroducing first-stage noise.
-Top-$k{=}6$ documents proceed to the LLM.
+The \texttt{ms-marco-MiniLM-L-6-v2} model uses cross-attention to
+score each (query, document) pair, and the assigned score is the
+only way to rank the candidates, so any hybrid scoring (used in the
+first stage) is ignored to mitigate any return of noise from the
+first stage.
+The top 6 scores of the candidates move to the next stage for
+analysis.
 
 \paragraph{Stage 3: LLM Analysis.}
-The LLM (default: Llama~3.3~70B, temperature~0) produces structured
-output: root cause, severity, timeline, reasoning steps,
+The LLM (default: Llama~3.3~70B model, temperature~0) creates the
+structured output of root cause, severity of issue, resolution time
+frame, logical steps in the reasoning process, and an actionable
 recommendation.
-Composite confidence combines: mean retrieval score (30\%), output
-completeness (30\%), evidence density (20\%), inter-iteration
-consistency (20\%).
+The final confidence that identifies which RAG iteration is to be
+reported is derived from a composite of: 30\% of the mean score of
+the retrieval stage, 30\% based upon the completeness of the output,
+20\% based upon the density of supporting evidence of the output,
+20\% based on the RAG iterations having similar output values.
 
 \paragraph{Stage 4: Confidence-Gated Iteration.}
-Three stopping rules: high-confidence exit (${\geq}0.85$), plateau
-detection (2 consecutive non-improvements), hard cap ($M{=}3$).
-Returns the \emph{best-scoring} iteration.
+The confidence-gated RAG system has three distinct stopping rules
+that will end an iteration cycle: exit if the combined overall
+confidence is equal to or greater than 0.85, if either of the last
+two RAG iterations had no improvement (a plateau), or if the
+iteration cycle has exceeded three (maximum iterations permitted) to
+identify the best-scoring iteration for the RAG system.
 
 \begin{algorithm}[t]
 \caption{Adaptive Iterative RAG}
@@ -250,15 +291,18 @@ Returns the \emph{best-scoring} iteration.
 
 \subsection{Implementation Details}
 
-The retriever uses \texttt{all-MiniLM-L6-v2} (22M parameters, 384-dim
-embeddings) indexed in ChromaDB (in-memory).
-The cross-encoder reranker is \texttt{ms-marco-MiniLM-L-6-v2} (22M
-parameters, trained on MS~MARCO passages).
-The default LLM is Llama~3.3~70B served via Groq (temperature~0,
+Retrieval Model: \texttt{all-MiniLM-L6-v2} (22M parameters,
+384-dim embeddings) indexed in ChromaDB (in-memory).
+Cross-Encoder Reranking Model: \texttt{ms-marco-MiniLM-L-6-v2}
+(22M parameters, trained against the MS~MARCO passage dataset).
+LLM (default): Llama~3.3~70B via Groq (temperature set to~0,
 \texttt{max\_tokens=2048}).
-Indexing is performed per-session; inference runs on CPU for
-embedding and reranking, with LLM calls via API.
-All models are used off-the-shelf without domain fine-tuning.
+Retrieval and cross-encoder reranking occurs during each session and
+uses a CPU for computation to generate embeddings and perform
+subsequent reranking.
+The LLM model is called via an API.
+All model types used in the adaptive iterative RAG system are
+implemented without domain-specific fine-tuning or adjustment.
 
 % ═══════════════════════════════════════════════════════════════════════════════
 % 4. EXPERIMENTAL SETUP
@@ -269,56 +313,62 @@ All models are used off-the-shelf without domain fine-tuning.
 
 \subsection{Dataset}
 
-We construct a synthetic telecom log corpus for multi-hop retrieval
-evaluation: \textbf{1{,}115 log entries} across \textbf{10 log files}
-from six network domains (eNodeB, CU-CP, CU-UP, RAN, Core Network,
-Transport).
-The corpus encodes \textbf{10 failure scenarios}, each comprising a
-causal chain spanning 2--5 files:
+We created a synthetic telecom log collection to evaluate multi-hop
+retrieval: there are \textbf{1{,}115 logs} across \textbf{10 log
+files} from 6 different network domains (e.g., eNodeB, CU-CP, CU-UP,
+RAN, Core Network, Transport).
+The logs represent \textbf{10 different failure scenarios} and consist
+of a chain of cause-and-effect relationships across 2--5 log files:
 
 \begin{enumerate}[nosep]
-    \item RRC Reconfiguration failure cascade (4 files, 13 steps)
-    \item SCTP transport link failure, 45 UEs affected (4 files)
-    \item Inter-gNB handover failure with PDCP data loss (4 files)
-    \item PDU session rejection by PCF policy (5 files)
-    \item RLC max retransmission causing DRB failure (4 files)
-    \item GTP-U path failure on backhaul (4 files)
-    \item 5G-AKA authentication failure, SQN desync (4 files)
-    \item DL scheduler starvation under load (3 files)
-    \item IPSec tunnel failure on midhaul (3 files)
-    \item AMF overload from registration storm (3 files)
+    \item RRC Reconfiguration Failure --- 4 log files, 13 steps
+    \item SCTP Transport Link Failure --- 45 UEs impacted (4 log files)
+    \item Inter-gNB Handover Failure with PDCP Data Loss (4 log files)
+    \item PDU Session Denied by PCF Policy (5 log files)
+    \item Max RLC Retransmission Causes DRB Failure (4 log files)
+    \item GTP-U Path Failure on Backhaul (4 log files)
+    \item 5G-AKA Authentication Failure with SQN Desynchronization (4 log files)
+    \item Downlink Scheduler Starvation Under Load (3 log files)
+    \item IPSec Tunnel Failure on Midhaul (3 log files)
+    \item AMF Overloaded by Registration Storm (3 log files)
 \end{enumerate}
 
-Each file contains scenario entries interleaved with 80--120
-normal-operation background entries, requiring retrieval to
-distinguish relevant evidence from noise.
+Each log file includes a series of logs that outline a scenario and
+80--120 logs that document normal operations.
+The user must retrieve the logs that provide relevant evidence for
+their query.
 
-\paragraph{Dataset Justification.}
-The corpus is synthetic by design.
-Production telecom logs contain sensitive subscriber data, proprietary
-protocol traces, and operator-specific configurations that preclude
-public release under standard security and privacy constraints.
-A synthetic corpus offers three advantages for our study:
-(i)~complete control over failure complexity and causal chain length,
-enabling systematic evaluation;
-(ii)~known ground-truth root causes for every query, eliminating
-annotation ambiguity;
-(iii)~full reproducibility, as both data and evaluation code are
-publicly released.
+\paragraph{Dataset Rationale.}
+The logs for our synthetic dataset do not contain personally
+identifiable information (PII) or private proprietary information
+found in commercial-grade telecom logs (for example,
+subscriber-specific configuration information).
+A synthetic corpus has three benefits for this research:
+(i)~The researcher has complete control over the complexity of the
+failures presented in a corpus (i.e., type of failure and number of
+causal relationships), allowing consistent evaluation of the efficacy
+of the various methods used to identify root causes;
+(ii)~every query in this study has a known root cause, allowing
+researchers to avoid confusion when annotating the logs; and
+(iii)~all of the data and code used in this study will be publicly
+available for replication of any results that are reported.
 
 \subsection{Queries}
 
-\textbf{65 evaluation queries} across 8 types:
+\textbf{65 evaluation queries} were included as follows:
 root-cause analysis (10), failure tracing (10), multi-hop (10),
-temporal (10), impact analysis (10), error-code (10),
+temporal (10), impact analysis (10), error code (10),
 cross-scenario (4), contrastive (1).
-55 of 65 require cross-file reasoning.
-Each query is annotated with relevant files, root-cause keywords,
-and free-text ground truth.
+Of the total number of queries submitted, 55 required cross-file
+reasoning to determine the correct retrieval answer.
+Each query was annotated for the log file(s), root-cause keyword(s),
+and free text describing the true nature of the logs related to
+the query.
 
 \subsection{Ablation Configurations}
 
-Six configurations share the same LLM (Llama~3.3~70B):
+There were six configurations of the models where each model used
+LLM (Llama~3.3~70B):
 
 \begin{table}[h]
 \centering
@@ -341,18 +391,18 @@ Full System      & \checkmark & \checkmark & \checkmark  & \checkmark  \\
 
 \subsection{Multi-LLM Comparison}
 
-Retrieval is fixed (Hybrid+Rerank, top-6) across four models:
-Llama~3.3~70B, Llama~3.1~8B, Mixtral~8x7B, Gemma2~9B (all via Groq,
-temperature~0).
+All retrievals were fixed (Hybrid+Rerank, top-6) across four models:
+Llama~3.3~70B, Llama~3.1~8B, Mixtral~8x7B, Gemma2~9B (all used
+Groq; temperature~$=$~0).
 
 \subsection{Metrics}
 
-\textbf{Retrieval}: Precision@K, Recall@K, MRR.
+\textbf{Retrieval}: Precision@K, Recall@K, Mean Reciprocal Rank (MRR).
 \textbf{Reasoning}: keyword overlap (RCA\textsubscript{kw}),
-semantic similarity, structured scoring, composite score
+semantic similarity, structured scores, composite score
 ($0.35{\cdot}\text{sem} + 0.30{\cdot}\text{struct} +
 0.20{\cdot}\text{ROUGE-L} + 0.15{\cdot}\text{kw}$).
-\textbf{LLM-as-judge}: binary correctness.
+\textbf{LLM-as-judge}: correct/not correct (binary).
 
 % ═══════════════════════════════════════════════════════════════════════════════
 % 5. RESULTS
@@ -361,12 +411,11 @@ semantic similarity, structured scoring, composite score
 \section{Results}
 \label{sec:results}
 
-\subsection{Ablation Study}
+\subsection{Study of Individual Components}
 \label{sec:ablation}
 
-Table~\ref{tab:ablation} reports aggregate metrics.
-The central finding: \textbf{retrieval metrics move; reasoning
-metrics do not}.
+There were multiple important findings for the aggregate measures
+(Table~\ref{tab:ablation}).
 
 \begin{table}[h]
 \centering
@@ -389,24 +438,31 @@ Full-System          & 0.751$\pm$0.15 & 0.729$\pm$0.15 & 0.811$\pm$0.14 & 0.359$
 \end{table}
 
 \paragraph{Findings.}
-(i)~Cross-encoder reranking yields the largest single-component
-gain: Hybrid$\to$Hybrid+Rerank improves P@K by +0.096
-($p{<}0.001$), yet RCA\textsubscript{kw} increases by only
-+0.032 ($p{=}0.234$, n.s.).
-(ii)~BM25 fusion adds complementary signal for exact error codes,
-lifting P@K from 0.553 (Dense-Only) to 0.699 (Hybrid).
-(iii)~Iteration without reranking degrades precision via query drift
-(Hybrid+Iter.\ P@K$=$0.628 vs.\ Hybrid 0.699), though recall
-improves (0.704 vs.\ 0.637).
-(iv)~Across all six configs, \textbf{P@K varies by 0.24
-($p{<}0.001$) while RCA\textsubscript{kw} varies by only 0.05
-($p{=}0.08$, n.s.)}---the direct empirical signature of the
+The most significant finding was:
+(i)~A cross-encoder reranking produced the largest single-component
+improvement: Hybrid$\to$Hybrid+Rerank produced a change in P@K of
++0.096 ($p{<}0.001$); however, there was only a small additional
+increase of +0.032 ($p{=}0.234$, n.s.) for
+RCA\textsubscript{kw}.
+(ii)~A BM25 fusion produced additional useful information to support
+the use of an exact error code when compared to the performance from
+using the Dense-Only model alone and increased the P@K from 0.553
+(Dense-Only) to 0.699 (Hybrid).
+(iii)~Iteration without any reranking will produce lower precision
+scores because of query drift (Hybrid+Iter.\
+P@K$=$0.628 vs.\ Hybrid 0.699); conversely, it produced a higher
+recall score (0.704 vs.\ 0.637).
+(iv)~In all six configurations tested, the average
+retrieval--reasoning gap for \textbf{P@K was 0.24 ($p{<}0.001$);
+however, the average retrieval--reasoning gap for
+RCA\textsubscript{kw} was only 0.05 ($p{=}0.08$, n.s.)}.
+Therefore, this provides direct empirical evidence for the
 retrieval--reasoning gap.
-Scatter plots of retrieval score vs.\ reasoning accuracy for all
-390 query$\times$config pairs are included in the supplementary
-material.
+There are scatter plots of retrieval vs.\ reasoning accuracy
+ratings available in the supplementary data section that include all
+390 combinations of query$\times$configuration.
 
-\subsection{Multi-LLM Comparison}
+\subsection{Comparison of Multiple LLMs}
 \label{sec:multi-llm}
 
 \begin{table}[h]
@@ -427,18 +483,22 @@ Llama-3.1-8B         & 0.260$\pm$0.12 & 0.607$\pm$0.12 & 1.9 & 8B \\
 \end{tabular}
 \end{table}
 
-With identical Hybrid+Rerank retrieval (P@K$\approx$0.794 for all
-models), RCA\textsubscript{kw} ranges from 0.260 (Llama~3.1~8B) to
-0.363 (Llama~3.3~70B)---a 0.103 absolute gap attributable entirely
-to model capability.
-Completeness follows the same trend (0.607--0.703), confirming that
-\textbf{reasoning is independently bounded by model capability}.
-Notably, the 70B$\to$8B reasoning drop (0.103) exceeds the
+The average P@K rating was nearly the same (P@K$\approx$0.794 for
+all LLMs) when retrieval using the Hybrid+Rerank model was applied
+to each of the four proposed models; however, the corresponding
+RCA\textsubscript{kw} ranged from 0.260 (Llama~3.1~8B) to 0.363
+(Llama~3.3~70B): a range of 0.103, which was due strictly to the
+model capability difference.
+Completeness followed the same pattern as for the variance by LLM
+(0.607--0.703), thereby confirming \textbf{a model capability
+independency basis as an influencing factor in reasoning success}.
+Additionally, the overall drop from the 70B$\to$8B LLM in terms of
+RCA due to reasoning dropped more (0.103) than the
 Dense-Only$\to$Hybrid+Rerank retrieval-driven RCA change (0.032),
-indicating that model scaling dominates retrieval optimization for
-reasoning quality.
+indicating that the total effect of retrieval optimization on
+reasoning quality was dominated by LLM scaling.
 
-\subsection{Retrieval--Reasoning Correlation}
+\subsection{Correlation Between Retrieval and Reasoning}
 
 \begin{table}[h]
 \centering
@@ -457,15 +517,16 @@ MRR          & 0.169 & 0.0008 & 0.143 & 0.0045 \\
 \end{tabular}
 \end{table}
 
-All correlations are weak ($|r|{<}0.25$, $|\rho|{<}0.23$), despite
-being statistically significant ($p{<}0.005$) due to the large
-sample ($n{=}390$).
-Pearson $r{=}0.244$ for P@K means retrieval quality explains only
-$\sim$6\% of variance in reasoning accuracy.
-This confirms the gap: \textbf{retrieval quality is a poor predictor
-of reasoning accuracy}.
+All correlations between retrieval metrics and reasoning accuracy
+metrics are weak ($|r|{<}0.25$, $|\rho|{<}0.23$) but statistically
+significant ($p{<}0.005$, which indicates that this is due to the
+size of the sample).
+The Pearson $r{=}0.244$ for P@K resulting in a retrieval quality
+variance of approximately 6\% (out of a maximum 100\% variance)
+being explained by the retrieval quality; thus \textbf{confirming the
+existence of a retrieval--reasoning gap for our empirical data}.
 
-\subsection{Failure Mode Distribution}
+\subsection{Query Failure Distributions}
 
 \begin{table}[h]
 \centering
@@ -484,17 +545,19 @@ Low retrieval, low reasoning             & 111 & 28.5 \\
 \end{tabular}
 \end{table}
 
-The 43\% of queries in off-diagonal regimes (21.5\% high-retrieval/low-reasoning + 21.5\% low-retrieval/high-reasoning)
-are direct evidence that aggregate metrics obscure distinct failure
-modes.
-The symmetric distribution across quadrants further supports the
-independence claim: retrieval success neither guarantees nor
-precludes correct reasoning.
+43\% of queries (21.5\% High~P@K/Low~RCA + 21.5\%
+Low~P@K/High~RCA) fall into off-diagonal quadrants---direct
+evidence that aggregate-level metrics do not allow for
+characterization of multiple failure modes.
+Also, the symmetric distribution of the overall failure patterns
+between the quadrants supports the independence claim since the
+success of retrieval does not ensure or deny correct reasoning.
 
-\subsection{Statistical Significance}
+\subsection{Statistical Comparison of Findings}
 
-Table~\ref{tab:significance} reports paired $t$-tests (65 matched
-queries) with bootstrap 95\% confidence intervals.
+Table~\ref{tab:significance} provides results of paired $t$-tests
+on matched sample ($n{=}65$) queries with bootstrapped 95\%
+confidence intervals.
 
 \begin{table}[h]
 \centering
@@ -517,14 +580,14 @@ Hybrid $\to$ Full System & RCA & +0.047 & 0.132 & [$-$0.014, 0.107] \\
 \end{tabular}
 \end{table}
 
-Retrieval improvements are consistently significant ($p{<}0.01$),
-while reasoning differences are consistently non-significant
-($p{>}0.08$).
-This pattern---significant retrieval gains paired with
-non-significant reasoning changes---is the statistical signature of
-the retrieval--reasoning gap.
+Retrieval gained statistically significant improvements
+($p{<}0.01$); reasoning differences were consistently
+non-significant ($p{>}0.08$).
+This observed pattern is representative of the statistical signature
+that demonstrates the presence of a retrieval--reasoning gap for our
+empirical data.
 
-\subsection{Improved Metrics}
+\subsection{Enhanced Metric Analysis}
 \label{sec:metrics-result}
 
 \begin{table}[h]
@@ -544,33 +607,41 @@ Semantic sim.\ vs.\ ROUGE-L F1                & 0.628 \\
 \end{tabular}
 \end{table}
 
-Keyword overlap correlates only moderately with semantic similarity
-($r{=}0.673$), indicating it is a noisy proxy---approximately 55\%
-of variance is unexplained.
-The composite score correlates more strongly with semantic similarity
-($r{=}0.849$), confirming that multi-signal evaluation reduces
-single-metric vulnerability.
+The association between keyword overlap and semantic similarity is
+only moderate ($r{=}0.673$), thereby indicating this metric is most
+appropriate for use as a noisy surrogate measure; therefore there
+exists approximately 55\% of the variance that does not have an
+experimental cause.
+The composite-retrieval score resulted in a higher correlation with
+semantic similarity ($r{=}0.849$), confirming the assumption that
+utilizing a multi-metric approach reduces the vulnerability of
+relying on a single metric.
 
-\subsection{Qualitative Cases}
+\subsection{Illustrative Examples}
 \label{sec:cases}
 
-\paragraph{Case 1: Good retrieval, wrong reasoning.}
-On SCTP failure (S02), Hybrid+Rerank retrieves all relevant files
-(P@K~${>}0.8$), but the LLM stops at the symptom without tracing the
-full cascade.
+\paragraph{Example 1: High P@K retrieval, Low RCA.}
+SCTP Failure (S02): The Hybrid+Rerank model retrieved all files
+relevant for locating data related to this case; however, the LLM
+was not able to identify the whole chain of sequentially affected
+data specifically referenced in the completion of this case.
 
-\paragraph{Case 2: Imperfect retrieval, correct reasoning.}
-On handover failure (S03), Dense-Only misses RAN entries, but the LLM
-correctly chains the failure using domain priors.
+\paragraph{Example 2: Low P@K retrieval, High RCA.}
+Handover failure (S03): Although the Dense-Only model missing RAN
+entries produced an invalid P@K score, it produced an accurate
+chained reasoning for this case based on previous experiences and
+knowledge within the domain.
 
-\paragraph{Case 3: Iteration helps.}
-On authentication failure (S07), first-pass retrieval is broad;
-query refinement injects ``SQN'', ``AUSF'', pulling correct evidence
-on iteration~2.
+\paragraph{Example 3: Iteration was found to be beneficial.}
+On failure of Authentication (S07): Initially broad first-pass
+retrieval; however, during query refinement, injecting the terms
+``SQN'' and ``AUSF'' resulted in retrieving the proper evidence on
+the 2nd iteration.
 
-\paragraph{Case 4: Iteration hurts.}
-Under Hybrid+Iter.\ on scheduler starvation (S08), incorrect
-first-pass analysis causes query drift toward unrelated transport logs.
+\paragraph{Example 4: Iteration was detrimental.}
+For scheduler starvation (S08) Hybrid+Iter.: An incorrect initial
+examination of the data produced drift during the query leading to
+the retrieval of unrelated logs from a transport log.
 
 % ═══════════════════════════════════════════════════════════════════════════════
 % 6. DISCUSSION
@@ -579,59 +650,77 @@ first-pass analysis causes query drift toward unrelated transport logs.
 \section{Discussion}
 \label{sec:discussion}
 
-\subsection{Why Retrieval Improvements Fail to Improve Reasoning}
+\subsection{Reasons for Retrieval-Enhanced Results Not Delivering on Reasoning}
 
-The gap has a structural explanation: retrieval and reasoning are
-bounded by \emph{different failure modes}.
-Retrieval is limited by index coverage, fusion weights, and reranker
-accuracy.
-Reasoning is limited by the LLM's ability to chain multi-source
-evidence and distinguish relevant from irrelevant context.
+The reasoning/retrieval disconnect results from different potential
+failure modes that limit retrieval (i.e., the limitations of index
+coverage, fusion weights, and reranker accuracy) versus reasoning
+(i.e., the limitation of an LLM to chain multiple sources of evidence
+together and distinguish between relevant/not-relevant context).
 
-Three mechanisms generate the disconnect:
-(i)~Precision@K is reasoning-blind---a document can be relevant by
-annotation yet unused by the LLM.
-(ii)~End-task accuracy is retrieval-blind---correct answers can arise
-from LLM priors rather than retrieved evidence.
-(iii)~Averaging across queries erases the regime---two queries in
-opposite failure modes produce identical aggregate scores.
-The scatter plots in our supplementary materials (Figure~1) visualize
-this: across 390 query$\times$config pairs, the regression slope is
-near-flat ($r{=}0.244$), with large vertical spread confirming that
-identical retrieval scores produce widely varying reasoning outcomes.
+The reasons for this disconnect can be summarized in three ways:
+(i)~Precision@K is reasoning and retrieval agnostic.
+Therefore, a document could be deemed to be relevant based on a
+subject matter expert's annotation, but would not necessarily pass
+through an LLM as part of its evidence chain when applying
+multi-source reasoning.
+(ii)~The task of evaluating end-task accuracy does not distinguish
+between a correct answer that is based on LLM prior knowledge versus
+correct based on retrieved evidence.
+(iii)~When aggregating results across multiple queries, the overall
+effectiveness of retrieval is reduced due to query drift.
+For example, two different queries that exhibit opposite failed
+retrieval states produce the same aggregated outcome; however, one
+query will have a high return while another will have low returns.
+Examples of this are illustrated in the scatter plots located in our
+supplementary materials (Figure~1).
+As indicated, of the total of 390 amounts of data collected at each
+query configuration, there exists very little slope in the
+corresponding regression ($r{=}0.244$), but rather a large degree of
+vertical separation in the variance of what a user could be presented
+with would indicate that regardless of what was returned as being a
+relevant document to the query, there is significant variability in
+the LLM's reasoning capabilities.
 
-\subsection{Implications for RAG Evaluation}
+\subsection{RAG Evaluation Impact on Multi-Hop Retrieval}
 
-Evaluating multi-hop RAG requires:
-(i)~explicit decomposition of retrieval vs.\ reasoning failures;
-(ii)~ablations holding the LLM fixed while varying retrieval, and
-vice versa;
-(iii)~per-query regime reporting;
-(iv)~semantic evaluation metrics beyond keyword overlap.
-These apply to multi-hop QA, scientific RAG, code assistants, and
-agentic retrieval.
+To properly evaluate multi-hop RAG, these evaluations should:
+(i)~separate retrieval and reasoning from one another;
+(ii)~hold LLMs constant while varying retrieval;
+(iii)~provide per-query performance metrics; and
+(iv)~provide metrics of semantic accuracies based on more than simple
+keyword overlap.
+The mentioned are also applicable to multi-hop QA, RAG for scientific
+integration, code assistance, and agentic retrieval.
 
-\subsection{Implications for Multimodal Systems}
+\subsection{Multi-Mode RAG Impact on Retrieval/Reasoning Gap}
 
-The retrieval--reasoning gap is likely amplified in multimodal
-settings.
-When a system retrieves heterogeneous evidence---images, tables,
-video segments, and text---from multiple sources, improving retrieval
-recall for each modality does not ensure the generation model can
-integrate cross-modal evidence into coherent reasoning.
-The challenge of assembling and reasoning over disparate evidence
-types mirrors the multi-hop text problem we study, but adds
-modality-alignment as an additional failure mode.
-Our decomposition framework (fixed retrieval $\times$ varied model,
-and vice versa) offers a principled evaluation template for
-multimodal generation pipelines facing this gap.
+The retrieval vs.\ reasoning gap will likely be worsened when applied
+to multi-modal environments.
+When evidence of heterogeneous type (i.e., image, table, video, and
+written evidence) from multiple sources is retrieved, there is no
+guarantee that each of the multi-modal retrievals will be
+successfully synthesized into coherent reasoning by a generation
+model, even if retrieval has very high recall rates for each mode.
+As noted above concerning how difficult it is to effectively
+construct a reasoning framework from disparate modes of evidence, the
+multi-hop research that we are studying provides relevant multi-hop
+evidence types, but since each of these types are not always
+modularized by construction, a retrieval model must also provide a
+proper and aligned conceptual construct across each type of evidence.
+The construct comparisons between varied retrieval types and a model
+that performs the actual reasoning should provide a means to evaluate
+multi-modal generation across large numbers of iterations.
 
-\subsection{Adaptive vs.\ Fixed Iteration}
+\subsection{Adaptive to Fixed Iteration}
 
-Adaptive stopping avoids wasteful LLM calls and tolerates temporary
-confidence dips.
-Fixed iteration exhibits query drift (Case~4), amplifying first-pass
-errors without a precision-oriented reranking guard.
+The adaptive stopping sequence provides an efficient means of
+obtaining LLM evidence, while allowing for temporary downtimes in
+confidence.
+However, systems utilizing fixed iteration processes will have drift
+or change in user queries (see Example~4) and the first-pass outcome
+of a fixed system will affect the overall return due to the absence
+of precision-oriented reranking.
 
 % ═══════════════════════════════════════════════════════════════════════════════
 % 7. LIMITATIONS AND FUTURE WORK
@@ -640,38 +729,47 @@ errors without a precision-oriented reranking guard.
 \section{Limitations and Future Work}
 \label{sec:limitations}
 
-\textbf{Text-only evaluation.}
-All experiments use text-based retrieval and generation; extending
-to multimodal RAG (image+text, video+text) is necessary to confirm
-whether the retrieval--reasoning gap persists---or widens---across
-modalities.
+\textbf{Text-only Evaluation.}
+All experiments use only text as input for retrieval and generation.
+More work is needed to investigate whether the retrieval/reasoning
+gap still exists or increases when multimodal retrieval-augmented
+generation (RAG) is used (for example, with image+text or video+text
+evidence).
 
-\textbf{Synthetic dataset.}
-The corpus is synthetically generated with known ground truths.
-While this enables controlled evaluation, it may not capture the
-noise distributions, annotation ambiguity, and scale of production
-systems.
-Validation on real-world telecom logs and established multi-hop
-benchmarks (HotpotQA, MuSiQue) is needed to confirm generalizability.
+\textbf{Synthetic Dataset.}
+The corpus used in this study was synthetically generated, with known
+ground truth.
+While this allows for controlled assessment, there are many factors
+that may differ between the synthetic and true noise distributions,
+as well as the level of uncertainty related to the annotation and the
+size of the production systems.
+Therefore, it will be necessary to conduct more work using real-world
+telecommunications logs and established multi-hop benchmark datasets
+(e.g., HotpotQA and MuSiQue) in order to assess the
+generalizability of the models developed in this paper.
 
-\textbf{LLM-as-judge bias.}
-Cross-model judges and human evaluation
-are needed to validate automated scoring.
+\textbf{LLM-as-Judge Bias.}
+The development of cross-model judges and human evaluation will
+provide additional support for the automated scoring methodologies.
 
-\textbf{Single domain.}
-Replication on additional domains (code-assistant, scientific QA,
-medical) would strengthen generality claims.
+\textbf{Single Domain.}
+Performing the same experiment using other domains (e.g.,
+code-assistant, scientific Q\&A, and medical) will strengthen the
+generality claim from this work.
 
-\textbf{Confidence calibration.}
-The composite confidence score is a heuristic,
-not a formally calibrated metric.
+\textbf{Confidence Calibration.}
+The composite confidence score is only a heuristic, not a formally
+calibrated metric.
 
-Future directions include: (i)~multimodal retrieval--reasoning
-experiments with image+text evidence; (ii)~larger corpora with
-bootstrap significance testing; (iii)~human-calibrated evaluation;
-(iv)~domain-adapted embeddings via contrastive learning;
-(v)~graph-based causal retrieval; (vi)~reader fine-tuning to test
-whether reasoning improvements close the gap.
+Future work will consist of: (i)~multimodal retrieval--reasoning
+experiments that include image+text evidence; (ii)~employing
+larger-than-individual-size corpora with bootstrap significance
+testing; (iii)~performing a human-calibrated evaluation of these
+models; (iv)~adapting domain-specific embeddings created using
+contrastive learning methods; (v)~developing graph-based systems for
+causal retrieval; and (vi)~fine-tuning the reader models to
+determine whether such fine-tuning allows for advancement in
+reasoning performance and reduction of the retrieval/reasoning gap.
 
 % ═══════════════════════════════════════════════════════════════════════════════
 % 8. CONCLUSION
@@ -679,20 +777,28 @@ whether reasoning improvements close the gap.
 
 \section{Conclusion}
 
-We demonstrated the \textbf{retrieval--reasoning gap}: across six
-ablation configurations and 65 queries, P@K varies by 0.24
-($p{<}0.001$) while RCA\textsubscript{kw} varies by only 0.05
-($p{=}0.08$, n.s.), with Pearson $r{=}0.244$ between retrieval and
-reasoning.
-A multi-LLM comparison with fixed retrieval shows reasoning accuracy
-gaps of up to 0.103 attributable to model capability alone.
-Per-query analysis reveals 43\% of cases fall in off-diagonal
-regimes where retrieval and reasoning quality diverge.
-We proposed a decomposition framework and composite metric
-($r{=}0.849$ with semantic evaluation) that make the gap visible.
-The broader implication: \emph{for multi-hop RAG, improving retrieval
-is necessary but not sufficient---reasoning quality requires
-independent attention, and evaluation must reflect this.}
+The retrieval--reasoning gap has been demonstrated in this work:
+across six different ablation configurations and the sixty-five
+queries, P@K varied 0.24 ($p{<}0.001$) while RCA\textsubscript{kw}
+only varied by 0.05 ($p{=}0.08$, n.s.) with Pearson $r{=}0.244$
+between retrieval and reasoning.
+In our investigation of multiple LLMs with fixed retrieval and their
+corresponding reasoning accuracies, we show that, at times, simply
+because of the model capability they displayed there was a reasoning
+accuracy difference of as much as 0.103.
+Of the forty-three percent of our per-query analysis, we found all
+cases fall into the off-diagonal area of the retrieval--reasoning
+space indicating that retrieval and reasoning do not agree upon the
+same solution.
+We also introduced an approach to break down (decompose) the LLMs to
+create a single evaluation (composite metric) that showed good
+agreement ($r{=}0.849$ with semantic evaluation) with the original
+semantic evaluation data.
+Therefore, the implication is clear: though both retrieval and
+reasoning improvements must be pursued, improving retrieval alone is
+not enough for multi-hop RAG success.
+Thus, reasoning quality must be independently addressed and also
+measured during the evaluation process of RAGs.
 
 % ═══════════════════════════════════════════════════════════════════════════════
 % REFERENCES
