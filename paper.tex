@@ -42,25 +42,26 @@
 % ═══════════════════════════════════════════════════════════════════════════════
 
 \begin{abstract}
-Retrieval-augmented generation (RAG) evaluations implicitly assume that
-improving retrieval improves end-task accuracy.  We show this assumption
-breaks down for multi-hop RAG.
-Using an iterative pipeline (hybrid BM25\,+\,bi-encoder retrieval,
-cross-encoder reranking, confidence-gated iteration), we evaluate
-65 multi-hop root-cause queries on a synthetic telecom log corpus
-(1{,}115 entries, 10 failure scenarios).
-A six-configuration ablation with a fixed LLM reveals that
-Precision@K spans 0.553--0.794 ($\Delta{=}0.24$,
-$p{<}0.001$) while root-cause accuracy remains flat at
-0.311--0.359 ($\Delta{=}0.05$, $p{=}0.08$, n.s.).
-A multi-LLM comparison (8B--70B) with identical retrieval confirms
-that reasoning accuracy depends on model capability independently
-of evidence quality.
-We propose a composite evaluation metric (semantic similarity +
-ROUGE-L + structured scoring) that better captures diagnostic
-quality than keyword overlap alone ($r{=}0.67$).
-Our results establish the \emph{retrieval--reasoning gap} as a
-structural property of multi-hop RAG.
+Standard RAG evaluation assumes that improving retrieval quality
+directly improves end-task accuracy---an assumption we show fails
+for multi-hop reasoning.
+We identify the \emph{retrieval--reasoning gap}: retrieval-side
+metric gains do not transfer to reasoning accuracy when the
+language model is held constant.
+Using a six-configuration ablation on 65 multi-hop queries
+(synthetic telecom logs, 1{,}115 entries), we find Precision@K
+varies by 0.24 ($p{<}0.001$) while root-cause accuracy remains
+statistically flat ($\Delta{=}0.05$, $p{=}0.08$, n.s.;
+Pearson $r{=}0.244$).
+A multi-LLM comparison (8B--70B) with fixed retrieval confirms
+reasoning is independently bounded by model capability.
+We propose a composite metric (semantic similarity + ROUGE-L +
+structured scoring) that captures diagnostic quality beyond
+keyword overlap ($r{=}0.849$ with semantic evaluation).
+These findings generalize beyond text-only pipelines: any
+multimodal retrieval system that assembles heterogeneous evidence
+before generation faces the same structural gap between
+retrieval and reasoning.
 \end{abstract}
 
 % ═══════════════════════════════════════════════════════════════════════════════
@@ -78,14 +79,15 @@ end-task.
 For multi-hop RAG---where evidence must be assembled from multiple
 sources before a language model reasons over it---this assumption is
 load-bearing yet under-examined.
+This work challenges that core assumption with controlled empirical
+evidence: improving retrieval alone is insufficient for multi-hop
+reasoning when the reader model is fixed.
 
-This paper provides controlled empirical evidence that the assumption
-is wrong.
-We present the \textbf{retrieval--reasoning gap}: the observation that
-improvements in retrieval-side metrics do not translate to improvements
-in reasoning accuracy when the LLM reader is fixed, and that this
+This paper presents the \textbf{retrieval--reasoning gap}: the
+observation that improvements in retrieval-side metrics do not
+translate to improvements in reasoning accuracy, and that this
 gap is a structural property of multi-hop RAG rather than an artifact
-of dataset size.
+of dataset size or domain.
 
 Our experimental design isolates retrieval from reasoning through
 three mechanisms:
@@ -110,20 +112,30 @@ we surface---metric disagreement, failure-mode independence, and
 inadequacy of aggregate scores---generalize to any RAG system
 performing multi-hop evidence assembly followed by LLM reasoning.
 
+Although our experiments are text-based, the retrieval--reasoning gap
+is not modality-specific.
+Multimodal retrieval systems that integrate image+text, video+text,
+or structured data face the same structural challenge: retrieving
+relevant heterogeneous evidence does not guarantee that a downstream
+multimodal generation model will reason correctly over it.
+Our evaluation framework---decomposing retrieval from reasoning---applies
+directly to such systems.
+
 \paragraph{Contributions.}
 \begin{enumerate}[nosep]
-    \item \textbf{Empirical evidence of the retrieval--reasoning gap.}
+    \item \textbf{Identifying the retrieval--reasoning gap as a
+    structural property.}
     Across six ablation configurations, Precision@K varies by 0.24
     ($p{<}0.001$) while root-cause accuracy varies by only 0.05
     ($p{=}0.08$, n.s.; Pearson $r{=}0.244$).
     Multi-LLM comparison with fixed retrieval shows reasoning
     accuracy gaps of up to 0.103 attributable to model capability
     alone.
-    \item \textbf{Evaluation framework.}
-    We propose a decomposition protocol for multi-hop RAG evaluation:
-    (a)~ablation with fixed LLM, (b)~model comparison with fixed
-    retrieval, (c)~per-query regime classification (high/low
-    retrieval $\times$ correct/incorrect reasoning).
+    \item \textbf{A decomposition protocol for multi-hop RAG evaluation.}
+    We propose: (a)~ablation with fixed LLM, (b)~model comparison
+    with fixed retrieval, (c)~per-query regime classification
+    (high/low retrieval $\times$ correct/incorrect reasoning)---a
+    framework applicable to both text-only and multimodal pipelines.
     \item \textbf{Composite evaluation metric.}
     We show keyword overlap is a noisy proxy and propose a composite
     score (semantic similarity + ROUGE-L + structured scoring) that
@@ -236,6 +248,18 @@ Returns the \emph{best-scoring} iteration.
 \end{algorithmic}
 \end{algorithm}
 
+\subsection{Implementation Details}
+
+The retriever uses \texttt{all-MiniLM-L6-v2} (22M parameters, 384-dim
+embeddings) indexed in ChromaDB (in-memory).
+The cross-encoder reranker is \texttt{ms-marco-MiniLM-L-6-v2} (22M
+parameters, trained on MS~MARCO passages).
+The default LLM is Llama~3.3~70B served via Groq (temperature~0,
+\texttt{max\_tokens=2048}).
+Indexing is performed per-session; inference runs on CPU for
+embedding and reranking, with LLM calls via API.
+All models are used off-the-shelf without domain fine-tuning.
+
 % ═══════════════════════════════════════════════════════════════════════════════
 % 4. EXPERIMENTAL SETUP
 % ═══════════════════════════════════════════════════════════════════════════════
@@ -268,6 +292,19 @@ causal chain spanning 2--5 files:
 Each file contains scenario entries interleaved with 80--120
 normal-operation background entries, requiring retrieval to
 distinguish relevant evidence from noise.
+
+\paragraph{Dataset Justification.}
+The corpus is synthetic by design.
+Production telecom logs contain sensitive subscriber data, proprietary
+protocol traces, and operator-specific configurations that preclude
+public release under standard security and privacy constraints.
+A synthetic corpus offers three advantages for our study:
+(i)~complete control over failure complexity and causal chain length,
+enabling systematic evaluation;
+(ii)~known ground-truth root causes for every query, eliminating
+annotation ambiguity;
+(iii)~full reproducibility, as both data and evaluation code are
+publicly released.
 
 \subsection{Queries}
 
@@ -365,6 +402,9 @@ improves (0.704 vs.\ 0.637).
 ($p{<}0.001$) while RCA\textsubscript{kw} varies by only 0.05
 ($p{=}0.08$, n.s.)}---the direct empirical signature of the
 retrieval--reasoning gap.
+Scatter plots of retrieval score vs.\ reasoning accuracy for all
+390 query$\times$config pairs are included in the supplementary
+material.
 
 \subsection{Multi-LLM Comparison}
 \label{sec:multi-llm}
@@ -571,6 +611,21 @@ vice versa;
 These apply to multi-hop QA, scientific RAG, code assistants, and
 agentic retrieval.
 
+\subsection{Implications for Multimodal Systems}
+
+The retrieval--reasoning gap is likely amplified in multimodal
+settings.
+When a system retrieves heterogeneous evidence---images, tables,
+video segments, and text---from multiple sources, improving retrieval
+recall for each modality does not ensure the generation model can
+integrate cross-modal evidence into coherent reasoning.
+The challenge of assembling and reasoning over disparate evidence
+types mirrors the multi-hop text problem we study, but adds
+modality-alignment as an additional failure mode.
+Our decomposition framework (fixed retrieval $\times$ varied model,
+and vice versa) offers a principled evaluation template for
+multimodal generation pipelines facing this gap.
+
 \subsection{Adaptive vs.\ Fixed Iteration}
 
 Adaptive stopping avoids wasteful LLM calls and tolerates temporary
@@ -585,20 +640,38 @@ errors without a precision-oriented reranking guard.
 \section{Limitations and Future Work}
 \label{sec:limitations}
 
-\textbf{Synthetic data}: results should be validated on production logs.
-\textbf{LLM-as-judge bias}: cross-model judges and human evaluation
-are needed.
-\textbf{Single domain}: replication on HotpotQA, MuSiQue, and
-code-assistant workloads would test generality.
-\textbf{Confidence calibration}: the composite score is a heuristic,
-not a validated metric.
+\textbf{Text-only evaluation.}
+All experiments use text-based retrieval and generation; extending
+to multimodal RAG (image+text, video+text) is necessary to confirm
+whether the retrieval--reasoning gap persists---or widens---across
+modalities.
 
-Future directions include: (i)~larger corpora with bootstrap
-significance testing; (ii)~human-calibrated evaluation;
-(iii)~domain-adapted embeddings via contrastive learning;
-(iv)~graph-based causal retrieval; (v)~reader fine-tuning to test
-whether reasoning improvements close the gap; (vi)~cross-domain
-replication.
+\textbf{Synthetic dataset.}
+The corpus is synthetically generated with known ground truths.
+While this enables controlled evaluation, it may not capture the
+noise distributions, annotation ambiguity, and scale of production
+systems.
+Validation on real-world telecom logs and established multi-hop
+benchmarks (HotpotQA, MuSiQue) is needed to confirm generalizability.
+
+\textbf{LLM-as-judge bias.}
+Cross-model judges and human evaluation
+are needed to validate automated scoring.
+
+\textbf{Single domain.}
+Replication on additional domains (code-assistant, scientific QA,
+medical) would strengthen generality claims.
+
+\textbf{Confidence calibration.}
+The composite confidence score is a heuristic,
+not a formally calibrated metric.
+
+Future directions include: (i)~multimodal retrieval--reasoning
+experiments with image+text evidence; (ii)~larger corpora with
+bootstrap significance testing; (iii)~human-calibrated evaluation;
+(iv)~domain-adapted embeddings via contrastive learning;
+(v)~graph-based causal retrieval; (vi)~reader fine-tuning to test
+whether reasoning improvements close the gap.
 
 % ═══════════════════════════════════════════════════════════════════════════════
 % 8. CONCLUSION
